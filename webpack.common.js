@@ -25,6 +25,10 @@ module.exports = {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
+      {
+        test: [/\.vert$/, /\.frag$/, /\.glsl$/],
+        use: ['raw-loader'],
+      }
     ],
   },
   resolve: {
