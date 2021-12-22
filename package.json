@@ -19,6 +19,7 @@
   "devDependencies": {
     "@babel/core": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
+    "@tweakpane/core": "^1.0.8",
     "@types/jest": "^24.9.0",
     "@types/node": "^13.1.8",
     "babel-jest": "^24.9.0",
@@ -41,5 +42,8 @@
     "webpack-dev-server": "^3.10.1",
     "webpack-glob-entry": "^2.1.1",
     "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "tweakpane": "^3.0.7"
   }
 }
