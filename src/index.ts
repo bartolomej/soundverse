@@ -70,9 +70,9 @@ class App extends Application {
     } = this.programs;
 
     const {
-      u_resolution: resolutionLocation,
-      u_mouse: mouseLocation,
-      u_time: timeLocation
+      resolution: resolutionLocation,
+      mouse: mouseLocation,
+      time: timeLocation
     } = uniforms;
 
     const {
@@ -103,10 +103,9 @@ class App extends Application {
     );
 
     const {mousePosition: [mouseX, mouseY]} = this;
-    const elapsedSeconds = time * 0.001;
     gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
     gl.uniform2f(mouseLocation, mouseX, mouseY);
-    gl.uniform1f(timeLocation, elapsedSeconds);
+    gl.uniform1f(timeLocation, time);
 
     gl.drawArrays(
       gl.TRIANGLES,

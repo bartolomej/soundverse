@@ -1,16 +1,28 @@
 precision highp float;
 
-uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-uniform float u_time;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time; // elapsed time in ms
 
+const float radius = 0.5;
+
+vec2 transform(vec2 v) {
+    v = v - vec2(0.5, 0.5);
+    return v * 2.;
+}
+
+vec2 normalizePos(vec2 v) {
+    return vec2(v.x / resolution.x, v.y / resolution.y);
+}
+
+// Draws a circle with specified radius.
+// Circle radius can be changed with mouse interaction.
 void main() {
-    // gl_FragColor is a special variable a fragment shader
-    // is responsible for setting
+    vec2 tPos = transform(normalizePos(gl_FragCoord.xy));
+    vec2 tMouse = transform(normalizePos(mouse));
 
-    gl_FragColor = vec4(
-        fract((gl_FragCoord.xy - u_mouse) / u_resolution),
-        fract(u_time),
-        1
-    );
+    float r = length(tPos) * length(tMouse);
+    float c = r > radius ? 1. : 0.;
+
+    gl_FragColor = vec4(c, c, c, 1);
 }
