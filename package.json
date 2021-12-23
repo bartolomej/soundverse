@@ -44,6 +44,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
+    "gl-matrix": "^3.4.3",
     "tweakpane": "^3.0.7"
   }
 }
