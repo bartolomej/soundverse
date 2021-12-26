@@ -23,6 +23,7 @@ export class Node {
         }
 
         this.camera = options.camera || null;
+        this.light = options.light || null;
         this.mesh = options.mesh || null;
 
         this.children = [...(options.children || [])];
@@ -44,6 +45,16 @@ export class Node {
             this.rotation,
             this.translation,
             this.scale);
+    }
+
+
+    getGlobalTransform() {
+        if (!this.parent) {
+            return mat4.clone(this.matrix);
+        } else {
+            let transform = this.parent.getGlobalTransform();
+            return mat4.mul(transform, transform, this.matrix);
+        }
     }
 
     addChild(node) {

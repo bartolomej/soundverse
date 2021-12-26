@@ -1,13 +1,10 @@
-import { mat4 } from "gl-matrix"
+import { Node } from "../Node";
 
 
-export class Camera {
+export class Camera extends Node {
 
-  constructor (options = {}) {
-    this.node = options.node || null;
-    this.matrix = options.matrix
-      ? mat4.clone(options.matrix)
-      : mat4.create();
+  constructor () {
+    super();
   }
 
 }

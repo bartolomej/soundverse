@@ -9,6 +9,8 @@ import { PerspectiveCamera } from '../cameras/PerspectiveCamera.js';
 import { OrthographicCamera } from '../cameras/OrthographicCamera.js';
 import { Node } from '../Node.js';
 import { Scene } from '../Scene.js';
+import { deep } from "../Utils";
+import { Light } from "../lights/Light";
 
 // This class loads all GLTF resources and instantiates
 // the corresponding classes. Keep in mind that it loads
@@ -241,6 +243,17 @@ export class GLTFLoader {
         return mesh;
     }
 
+    async loadLight(nameOrIndex) {
+        const gltfSpec = this.findByNameOrIndex(deep(this.gltf, 'extensions.KHR_lights_punctual.lights'), nameOrIndex);
+        if (this.cache.has(gltfSpec)) {
+            return this.cache.get(gltfSpec);
+        }
+        // create light with default props for now
+        const light = new Light();
+        this.cache.set(gltfSpec, light);
+        return light;
+    }
+
     async loadCamera(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.cameras, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
@@ -290,6 +303,11 @@ export class GLTFLoader {
         }
         if (gltfSpec.mesh !== undefined) {
             options.mesh = await this.loadMesh(gltfSpec.mesh);
+        }
+        // https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_lights_punctual#defining-lights
+        const light = deep(gltfSpec, 'extensions.KHR_lights_punctual.light');
+        if (light !== undefined) {
+            options.light = await this.loadLight(light)
         }
 
         const node = new Node(options);
