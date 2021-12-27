@@ -48,6 +48,16 @@ export class Scene {
         return cameras;
     }
 
+    getLights() {
+        const lights = [];
+        this.traverse((node) => {
+            if (node.light) {
+                lights.push(node);
+            }
+        });
+        return lights;
+    }
+
     clone() {
         return new Scene({
             ...this,

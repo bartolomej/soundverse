@@ -1,15 +1,18 @@
 
 export class Light {
 
-  constructor() {
+  public ambientColor: number[];
+  public diffuseColor: number[];
+  public specularColor: number[];
+  public attenuatuion: number[];
+  public shininess: number;
 
-    Object.assign(this, {
-      ambientColor     : [51, 51, 51],
-      diffuseColor     : [0, 0, 0],
-      specularColor    : [0, 0 ,0],
-      shininess        : 10,
-      attenuatuion     : [1.0, 0, 0.02]
-    });
+  constructor() {
+    this.ambientColor = [51, 51, 51];
+    this.diffuseColor = [0, 0, 0];
+    this.specularColor = [0, 0, 0];
+    this.attenuatuion = [1.0, 0, 0.02];
+    this.shininess = 10;
   }
 
 }

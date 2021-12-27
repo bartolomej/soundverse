@@ -1,6 +1,6 @@
 import "./style.css"
 import Application from "./engine/Application";
-import { Pane } from 'tweakpane';
+import * as dat from 'dat.gui';
 
 // shaders
 // @ts-ignore
@@ -16,7 +16,8 @@ class App extends Application {
 
   private renderer: WebGLRenderer;
   private scene: Scene;
-  private camera: Node;
+  public camera: Node;
+  public light: Node;
   private loader: GLTFLoader;
 
   async start() {
@@ -25,6 +26,7 @@ class App extends Application {
 
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
     this.camera = this.scene.getCameras()[0];
+    this.light = this.scene.getLights()[0];
 
     if (!this.scene || !this.camera) {
       throw new Error('Scene or Camera not present in glTF');
@@ -37,6 +39,18 @@ class App extends Application {
     this.renderer = new WebGLRenderer(this.gl);
     this.renderer.prepareScene(this.scene);
     this.resize();
+    this.initParams();
+  }
+
+  initParams() {
+    const gui = new dat.GUI();
+    gui.addColor(this.light.light, "ambientColor");
+    gui.addColor(this.light.light, "diffuseColor");
+    gui.addColor(this.light.light, "specularColor");
+    gui.add(this.light.light, "shininess");
+    gui.add(this.light.light.attenuatuion, "0");
+    gui.add(this.light.light.attenuatuion, "1");
+    gui.add(this.light.light.attenuatuion, "2");
   }
 
   render() {
@@ -60,7 +74,6 @@ class App extends Application {
 function main () {
   const canvas = document.querySelector('canvas');
   const app = new App(canvas);
-  // const pane = new Pane();
 }
 
 document.addEventListener('DOMContentLoaded', main);
