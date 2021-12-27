@@ -22,7 +22,7 @@ class App extends Application {
 
   async start() {
     this.loader = new GLTFLoader();
-    await this.loader.load('./models/cube/scene.gltf');
+    await this.loader.load('./models/room/room.gltf');
 
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
     this.camera = this.scene.getCameras()[0];
