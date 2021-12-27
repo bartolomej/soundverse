@@ -3,24 +3,19 @@ import { mat4, vec3 } from 'gl-matrix';
 import { WebGL } from "./WebGL";
 import { Light } from "../lights/Light";
 
-// core shaders
-import fragment from "./shaders/fragment.glsl";
-import vertex from "./shaders/vertex.glsl";
+import { createFragmentShader, createVertexShader } from "./shaders";
 
 // This class prepares all assets for use with WebGL
 // and takes care of rendering.
 
 export class WebGLRenderer {
 
-  constructor (gl) {
+  constructor (gl, options) {
     this.gl = gl;
+    this.options = options;
     this.glObjects = new Map();
-    this.programs = WebGL.buildPrograms(gl, {
-      simple: {
-        vertex,
-        fragment
-      }
-    });
+
+    this.preparePrograms(options);
 
     this.defaultTexture = WebGL.createTexture(gl, {
       data: new Uint8Array([255, 255, 255, 255]),
@@ -31,6 +26,17 @@ export class WebGLRenderer {
     gl.clearColor(1, 1, 1, 1);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
+  }
+
+  preparePrograms(options = {}) {
+    this.programs = WebGL.buildPrograms(this.gl, {
+      simple: {
+        vertex: createVertexShader(),
+        fragment: createFragmentShader({
+          nLights: options.nLights || 1
+        })
+      }
+    });
   }
 
   prepareBufferView (bufferView) {
@@ -172,6 +178,11 @@ export class WebGLRenderer {
   }
 
   prepareScene (scene) {
+    // rebuild programs if complete scene info is known on startup
+    this.preparePrograms({
+      ...this.options,
+      nLights: scene.getTotalLights()
+    })
     for (const node of scene.nodes) {
       this.prepareNode(node);
     }

@@ -28,6 +28,26 @@ export class Scene {
         }
     }
 
+    getTotalLights() {
+        let totalLights = 0;
+        this.traverse((node) => {
+            if (node.light) {
+                totalLights++
+            }
+        });
+        return totalLights;
+    }
+
+    getCameras() {
+        const cameras = [];
+        this.traverse((node) => {
+            if (node.camera) {
+                cameras.push(node);
+            }
+        });
+        return cameras;
+    }
+
     clone() {
         return new Scene({
             ...this,
