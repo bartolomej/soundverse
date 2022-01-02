@@ -2,6 +2,7 @@ export default class Application {
 
   public readonly canvas: HTMLCanvasElement;
   public gl: WebGL2RenderingContext;
+  private t0: number;
 
   constructor (canvas: HTMLCanvasElement, glOptions?: WebGLContextAttributes) {
     this._update = this._update.bind(this);
@@ -27,8 +28,10 @@ export default class Application {
 
   _update (time: number) {
     this._resize();
-    this.update();
-    this.render(time);
+    const dt = (this.t0 ? time - this.t0 : time) * 0.001;
+    this.update(dt, time);
+    this.render(dt, time);
+    this.t0 = time;
     requestAnimationFrame(this._update);
   }
 
@@ -50,11 +53,11 @@ export default class Application {
     // initialization code (including event handler binding)
   }
 
-  update () {
+  update (dt: number, time: number) {
     // update code (input, animations, AI ...)
   }
 
-  render (time: number) {
+  render (dt: number, time: number) {
     // render code (gl API calls)
   }
 

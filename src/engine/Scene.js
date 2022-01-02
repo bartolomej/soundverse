@@ -58,6 +58,16 @@ export class Scene {
         return lights;
     }
 
+    getNodesByName(name) {
+        const nodes = [];
+        this.traverse((node) => {
+            if (node.name === name) {
+                nodes.push(node);
+            }
+        });
+        return nodes;
+    }
+
     clone() {
         return new Scene({
             ...this,

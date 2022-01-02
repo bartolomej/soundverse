@@ -210,8 +210,6 @@ export class WebGLRenderer {
 
     let lightCounter = 0;
 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
     scene.traverse(
       node => {
         matrixStack.push(mat4.clone(matrix));
@@ -220,9 +218,7 @@ export class WebGLRenderer {
           this.renderLight(node, program, lightCounter)
           lightCounter++;
         }
-
-        gl.uniformMatrix4fv(program.uniforms.uViewModel, false, matrix);
-        this.renderNode(node)
+        this.renderNode(node, matrix)
       },
       node => {
         matrix = matrixStack.pop();
@@ -252,6 +248,9 @@ export class WebGLRenderer {
   }
 
   renderNode (node, mvpMatrix) {
+    const program = this.programs.simple;
+    this.gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
+
     if (node.mesh) {
       for (const primitive of node.mesh.primitives) {
         this.renderPrimitive(primitive);

@@ -17,6 +17,7 @@ export class PerspectiveCamera extends Camera {
     }
 
     updateMatrix() {
+        super.updateMatrix();
         mat4.perspective(this.projection,
             this.fov, this.aspect,
             this.near, this.far);
