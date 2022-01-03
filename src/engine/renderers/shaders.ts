@@ -9,8 +9,9 @@ type CoreFragmentShaderProps = {
 }
 
 export const createFragmentShader = ({
-  nLights = 0
+  nLights = 1
 }: CoreFragmentShaderProps) => {
+  nLights = 1; // TODO use only a single light for now
   // language=GLSL
   return `
 #version 300 es

@@ -47,7 +47,7 @@ class App extends Application {
       throw new Error('Camera node does not contain a camera reference');
     }
 
-    this.renderer = new WebGLRenderer(this.gl);
+    this.renderer = new WebGLRenderer(this.gl, {clearColor: [0,0,0,1]});
     this.renderer.prepareScene(this.scene);
     this.resize();
   }

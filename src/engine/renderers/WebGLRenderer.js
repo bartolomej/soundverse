@@ -10,9 +10,9 @@ import { createFragmentShader, createVertexShader } from "./shaders";
 
 export class WebGLRenderer {
 
-  constructor (gl, options) {
+  constructor (gl, options = {}) {
     this.gl = gl;
-    this.options = options;
+    this.clearColor = options.clearColor || [1,1,1,1];
     this.glObjects = new Map();
 
     this.preparePrograms(options);
@@ -23,7 +23,7 @@ export class WebGLRenderer {
       height: 1,
     });
 
-    gl.clearColor(1, 1, 1, 1);
+    gl.clearColor(...this.clearColor);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
   }
@@ -268,12 +268,12 @@ export class WebGLRenderer {
     const vao = this.glObjects.get(primitive);
     const material = primitive.material;
     const texture = material.baseColorTexture;
-    const glTexture = this.glObjects.get(texture.image);
-    const glSampler = this.glObjects.get(texture.sampler);
+    const glTexture = this.glObjects.get(texture?.image);
+    const glSampler = this.glObjects.get(texture?.sampler);
 
     gl.bindVertexArray(vao);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, glTexture);
+    gl.bindTexture(gl.TEXTURE_2D, glTexture || this.defaultTexture);
     gl.bindSampler(0, glSampler);
 
     if (primitive.indices) {
