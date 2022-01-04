@@ -1,5 +1,5 @@
 import { Camera } from "../cameras/Camera";
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, quat, vec3 } from "gl-matrix";
 import { Node } from "../Node";
 
 type FirstPersonControlsOptions = {
@@ -18,6 +18,7 @@ export default class FirstPersonControls {
   private acceleration: number;
   private maxSpeed: number;
   private mouseSensitivity: number;
+  private rotation: vec3 = [0,0,0]; // euler rotation vector with angles x,y,z
 
   constructor (node: Node, options: FirstPersonControlsOptions = {}) {
     this.node = node;
@@ -35,12 +36,12 @@ export default class FirstPersonControls {
   }
 
   update (dt: number) {
-    const { node, velocity, acceleration, friction, maxSpeed } = this;
+    const { node, velocity, acceleration, friction, maxSpeed, rotation } = this;
 
     const forward = vec3.set(vec3.create(),
-      -Math.sin(node.rotation[1]), 0, -Math.cos(node.rotation[1]));
+      -Math.sin(rotation[1]), 0, -Math.cos(rotation[1]));
     const right = vec3.set(vec3.create(),
-      Math.cos(node.rotation[1]), 0, -Math.sin(node.rotation[1]));
+      Math.cos(rotation[1]), 0, -Math.sin(rotation[1]));
 
     // 1: add movement acceleration
     let acc = vec3.create();
@@ -105,24 +106,31 @@ export default class FirstPersonControls {
   private mousemoveHandler (e: MouseEvent) {
     const dx = e.movementX;
     const dy = e.movementY;
-    const { node, mouseSensitivity } = this;
+    const { node, rotation, mouseSensitivity } = this;
 
-    node.rotation[0] -= dy * mouseSensitivity;
-    node.rotation[1] -= dx * mouseSensitivity;
+    rotation[0] -= dy * mouseSensitivity;
+    rotation[1] -= dx * mouseSensitivity;
 
-    // const pi = Math.PI;
-    // const twopi = pi * 2;
-    // const halfpi = pi / 2;
-    //
-    // if (node.rotation[0] > halfpi) {
-    //   node.rotation[0] = halfpi;
-    // }
-    // if (node.rotation[0] < -halfpi) {
-    //   node.rotation[0] = -halfpi;
-    // }
-    //
-    // node.rotation[1] = ((node.rotation[1] % twopi) + twopi) % twopi;
-    node.updateMatrix();
+    const pi = Math.PI;
+    const twopi = pi * 2;
+    const halfpi = pi / 2;
+
+    if (rotation[0] > halfpi) {
+      rotation[0] = halfpi;
+    }
+    if (rotation[0] < -halfpi) {
+      rotation[0] = -halfpi;
+    }
+
+    rotation[1] = ((rotation[1] % twopi) + twopi) % twopi;
+
+    const [x,y,z] = rotation.map((x: number) => x * 180 / Math.PI);
+    const q = quat.fromEuler(quat.create(), x, y, z);
+    const v = vec3.clone(node.translation);
+    const s = vec3.clone(node.scale);
+    mat4.fromRotationTranslationScale(node.matrix, q, v, s);
+
+    node.updateTransform();
   }
 
   private keydownHandler (e: KeyboardEvent) {
