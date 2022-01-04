@@ -220,12 +220,13 @@ export class WebGLRenderer {
     gl.uniform1i(program.uniforms.uTexture, 0);
 
     let matrix = mat4.create();
+    let {projection} = camera.camera;
     let matrixStack = [];
 
     const viewMatrix = camera.getGlobalTransform();
     mat4.invert(viewMatrix, viewMatrix);
     mat4.copy(matrix, viewMatrix);
-    gl.uniformMatrix4fv(program.uniforms.uProjection, false, camera.camera.projection);
+    gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
 
     let lightCounter = 0;
 
@@ -237,7 +238,7 @@ export class WebGLRenderer {
           this.renderLight(node, program, lightCounter)
           lightCounter++;
         }
-        this.renderNode(node, matrix, camera)
+        this.renderNode(node, matrix, projection)
       },
       node => {
         matrix = matrixStack.pop();
@@ -266,22 +267,22 @@ export class WebGLRenderer {
     gl.uniform3fv(program.uniforms['uLightAttenuation[' + lightCounter + ']'], light.attenuatuion);
   }
 
-  renderNode (node, mvpMatrix, camera) {
+  renderNode (node, mvpMatrix, projection) {
     const program = this.defaultProgram;
     this.gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
 
     if (node.mesh) {
       for (const primitive of node.mesh.primitives) {
-        this.renderPrimitive(primitive, mvpMatrix, camera);
+        this.renderPrimitive(primitive, mvpMatrix, projection);
       }
     }
 
     for (const child of node.children) {
-      this.renderNode(child, mvpMatrix, camera);
+      this.renderNode(child, mvpMatrix, projection);
     }
   }
 
-  renderPrimitive (primitive, mvpMatrix, camera) {
+  renderPrimitive (primitive, mvpMatrix, projection) {
     const gl = this.gl;
 
     const vao = this.glObjects.get(primitive);
@@ -290,21 +291,22 @@ export class WebGLRenderer {
     if (material instanceof ShaderMaterial) {
       const program = this.programs.get(material);
       gl.useProgram(program.program);
-      gl.uniformMatrix4fv(program.uniforms.uProjection, false, camera.camera.projection);
+      gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
       gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
 
       // TODO: add support for custom uniform values
       // gl.uniform1f(program.uniforms[customUniform], material.uniforms[customUniform]);
-    } else {
-      const texture = material.baseColorTexture;
-      const glTexture = this.glObjects.get(texture?.image);
-      const glSampler = this.glObjects.get(texture?.sampler);
-
-      gl.bindVertexArray(vao);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, glTexture || this.defaultTexture);
-      gl.bindSampler(0, glSampler);
     }
+
+    const texture = material.baseColorTexture;
+
+    const glTexture = this.glObjects.get(texture?.image);
+    const glSampler = this.glObjects.get(texture?.sampler);
+
+    gl.bindVertexArray(vao);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, glTexture || this.defaultTexture);
+    gl.bindSampler(0, glSampler);
 
     if (primitive.indices) {
       const mode = primitive.mode;
