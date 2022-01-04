@@ -26,7 +26,7 @@ uniform float uShininess[${nLights}];
 uniform vec3 uLightPosition[${nLights}];
 uniform vec3 uLightAttenuation[${nLights}];
 
-in vec3 vVertexPosition;
+in vec3 vVertexViewPosition;
 in vec3 vNormal;
 in vec2 vTexCoord;
 out vec4 oColor;
@@ -35,12 +35,12 @@ void main() {
     oColor = vec4(0.0);
     for (int i = 0; i < ${nLights}; i++) {
         vec3 lightPosition = (uViewModel * vec4(uLightPosition[i], 1)).xyz;
-        float d = distance(vVertexPosition, lightPosition);
+        float d = distance(vVertexViewPosition, lightPosition);
         float attenuation = 1.0 / dot(uLightAttenuation[i], vec3(1, d, d * d));
 
         vec3 N = (uViewModel * vec4(vNormal, 0)).xyz;
-        vec3 L = normalize(lightPosition - vVertexPosition);
-        vec3 E = normalize(-vVertexPosition);
+        vec3 L = normalize(lightPosition - vVertexViewPosition);
+        vec3 E = normalize(-vVertexViewPosition);
         vec3 R = normalize(reflect(-L, N));
 
         float lambert = max(0.0, dot(L, N));
@@ -68,15 +68,16 @@ layout (location = 2) in vec3 aNormal;
 uniform mat4 uViewModel;
 uniform mat4 uProjection;
 
+out vec3 vVertexViewPosition;
 out vec3 vVertexPosition;
 out vec3 vNormal;
 out vec2 vTexCoord;
 
 void main() {
-    vVertexPosition = (uViewModel * vec4(aPosition, 1)).xyz;
+    vVertexPosition = aPosition;
+    vVertexViewPosition = (uViewModel * vec4(aPosition, 1)).xyz;
     vNormal = aNormal;
     vTexCoord = aTexCoord;
-//    gl_Position = uProjection * vec4(vVertexPosition, 1);
     gl_Position = uProjection * uViewModel * vec4(aPosition, 1);
 
 }`.trim()

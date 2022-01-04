@@ -9,10 +9,17 @@ uniform float time;
 
 // standard inputs (varyings)
 in vec2 vTexCoord;
+in vec3 vVertexViewPosition;
+in vec3 vVertexPosition;
+in vec3 vNormal;
 
 out vec4 oColor;
 
 void main() {
-    vec3 t = texture(uTexture, vTexCoord).xyz * sin(time * 0.01);
-    oColor = vec4(t, 1);
+    float t = time * 0.005;
+    vec2 v = vec2(
+        sin(vVertexPosition.x * 10. * sin(t)),
+        cos(vVertexPosition.y * 10. * cos(t))
+    );
+    oColor = vec4(v, 0, 1);
 }

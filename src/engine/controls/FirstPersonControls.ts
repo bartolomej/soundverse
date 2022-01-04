@@ -25,7 +25,7 @@ export default class FirstPersonControls {
     this.velocity = options.velocity || vec3.create();
     this.friction = options.friction || 0.2;
     this.acceleration = options.acceleration || 20;
-    this.maxSpeed = options.maxSpeed || 3;
+    this.maxSpeed = options.maxSpeed || 5;
     this.mouseSensitivity = options.mouseSensitivity || 0.01;
 
     this.mousemoveHandler = this.mousemoveHandler.bind(this);
