@@ -22,6 +22,7 @@ class App extends Application {
   public lights: Node[];
   private loader: GLTFLoader;
   private controls: FirstPersonControls;
+  private shaderMaterial: ShaderMaterial;
 
   async start() {
     this.loader = new GLTFLoader();
@@ -29,13 +30,13 @@ class App extends Application {
 
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
 
-    const shaderMaterial = new ShaderMaterial({
+    this.shaderMaterial = new ShaderMaterial({
       fragmentShader: fragment,
       uniforms: {
         time: 0
       }
     });
-    this.scene.findNode("PictureFrame").mesh.setMaterial(shaderMaterial);
+    this.scene.findNode("PictureFrame").mesh.setMaterial(this.shaderMaterial);
 
     this.camera = new Node({
       translation: [0,2,0],
@@ -58,8 +59,9 @@ class App extends Application {
     this.resize();
   }
 
-  update (dt: number) {
+  update (dt: number, t: number) {
     this.controls?.update(dt);
+    this.shaderMaterial?.setUniform("time", t);
   }
 
   render() {

@@ -294,8 +294,12 @@ export class WebGLRenderer {
       gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
       gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
 
-      // TODO: add support for custom uniform values
-      // gl.uniform1f(program.uniforms[customUniform], material.uniforms[customUniform]);
+      for (const name in material.uniforms) {
+        const {type, value} = material.uniforms[name];
+        const func = `uniform${type}`;
+        const location = program.uniforms[name];
+        gl[func](location, value);
+      }
     }
 
     const texture = material.baseColorTexture;
