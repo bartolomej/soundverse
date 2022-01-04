@@ -1,22 +1,28 @@
 import { Node } from './Node.js';
 
-export class Scene {
+type TraverseCb = (node: Node) => void;
+type SceneOptions = {
+    nodes?: Node[];
+}
 
-    constructor(options = {}) {
+export class Scene {
+    private readonly nodes: Node[];
+
+    constructor(options: SceneOptions = {}) {
         this.nodes = [...(options.nodes || [])];
     }
 
-    addNode(node) {
+    addNode(node: Node) {
         this.nodes.push(node);
     }
 
-    traverse(before, after) {
+    traverse(before?: TraverseCb, after?: TraverseCb) {
         for (const node of this.nodes) {
             this.traverseNode(node, before, after);
         }
     }
 
-    traverseNode(node, before, after) {
+    traverseNode(node: Node, before?: TraverseCb, after?: TraverseCb) {
         if (before) {
             before(node);
         }
@@ -38,34 +44,32 @@ export class Scene {
         return totalLights;
     }
 
-    getCameras() {
-        const cameras = [];
+    getNodesWithProperty(property: string) {
+        const nodes: Node[] = [];
         this.traverse((node) => {
-            if (node.camera) {
-                cameras.push(node);
+            if (node.hasOwnProperty(property)) {
+                nodes.push(node);
             }
         });
-        return cameras;
+        return nodes;
     }
 
-    getLights() {
-        const lights = [];
-        this.traverse((node) => {
-            if (node.light) {
-                lights.push(node);
-            }
-        });
-        return lights;
+    getCameraNodes() {
+        return this.getNodesWithProperty("camera")
     }
 
-    getNodesByName(name) {
-        const nodes = [];
+    getLightNodes() {
+        return this.getNodesWithProperty("light");
+    }
+
+    findNode(name: string) {
+        const nodes: Node[] = [];
         this.traverse((node) => {
             if (node.name === name) {
                 nodes.push(node);
             }
         });
-        return nodes;
+        return nodes[0];
     }
 
     clone() {

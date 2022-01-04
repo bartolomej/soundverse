@@ -5,8 +5,6 @@ import * as dat from 'dat.gui';
 // shaders
 // @ts-ignore
 import fragment from "./shaders/fragment.glsl";
-// @ts-ignore
-import vertex from "./shaders/vertex.glsl";
 import { WebGLRenderer } from "./engine/renderers/WebGLRenderer";
 import { Scene } from "./engine/Scene";
 import { Node } from "./engine/Node";
@@ -14,6 +12,7 @@ import { GLTFLoader } from "./engine/loaders/GLTFLoader";
 import FirstPersonControls from "./engine/controls/FirstPersonControls";
 import { GUI } from "dat.gui";
 import { PerspectiveCamera } from "./engine/cameras/PerspectiveCamera";
+import ShaderMaterial from "./engine/materials/ShaderMaterial";
 
 class App extends Application {
 
@@ -30,7 +29,14 @@ class App extends Application {
 
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
 
-    // TODO: fix weird camera projection effect when rotated in y direction
+    const shaderMaterial = new ShaderMaterial({
+      fragmentShader: fragment,
+      uniforms: {
+        time: 0
+      }
+    });
+    this.scene.findNode("PictureFrame").mesh.setMaterial(shaderMaterial);
+
     this.camera = new Node({
       translation: [0,2,0],
       camera: new PerspectiveCamera()

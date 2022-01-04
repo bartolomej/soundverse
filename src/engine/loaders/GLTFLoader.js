@@ -4,11 +4,11 @@ import { Sampler } from '../Sampler.js';
 import { Texture } from '../textures/Texture.js';
 import { Material } from '../materials/Material.js';
 import { Primitive } from '../Primitive.js';
-import { Mesh } from '../Mesh.js';
+import { Mesh } from '../Mesh.ts';
 import { PerspectiveCamera } from '../cameras/PerspectiveCamera.js';
 import { OrthographicCamera } from '../cameras/OrthographicCamera.js';
 import { Node } from '../Node.js';
-import { Scene } from '../Scene.js';
+import { Scene } from '../Scene.ts';
 import { deep } from "../Utils";
 import { Light } from "../lights/Light";
 

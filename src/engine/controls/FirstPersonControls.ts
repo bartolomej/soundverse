@@ -1,4 +1,3 @@
-import { Camera } from "../cameras/Camera";
 import { mat4, quat, vec3 } from "gl-matrix";
 import { Node } from "../Node";
 

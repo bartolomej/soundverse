@@ -52,17 +52,20 @@ export class WebGL {
   static buildPrograms(gl: WebGL2RenderingContext, shaders: WebGlSourcePrograms) {
     const programs: WebGLBuiltPrograms = {};
     for (const name in shaders) {
-      try {
-        const program = shaders[name];
-        programs[name] = WebGL.createProgram(gl, [
-          WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
-          WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER)
-        ]);
-      } catch (err) {
-        throw new Error('Error compiling ' + name + '\n' + err);
-      }
+      programs[name] = WebGL.buildProgram(gl, shaders[name]);
     }
     return programs;
+  }
+
+  static buildProgram(gl: WebGL2RenderingContext, program: WebGlProgramSource) {
+    try {
+      return WebGL.createProgram(gl, [
+        WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
+        WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER)
+      ]);
+    } catch (err) {
+      throw new Error('Error compiling ' + name + '\n' + err);
+    }
   }
 
   static createProgram(gl: WebGL2RenderingContext, shaders: WebGLShader[]): WebGLBuiltProgram {
