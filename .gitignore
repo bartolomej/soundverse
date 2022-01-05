@@ -1,7 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 node_modules
 dist
-package-lock.json
 .idea
 # Local Netlify folder
 .netlify
