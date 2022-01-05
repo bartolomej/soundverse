@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions'
-import fetch from "node-fetch";
+import * as fetch from "node-fetch";
 
 export const handler: Handler = async (event, context) => {
   const { artistId } = event.queryStringParameters
@@ -24,5 +24,5 @@ async function fetchArtist (id: number | string) {
 }
 
 async function get (url: string): Promise<any> {
-  return fetch(url).then(res => res.json());
+  return fetch.default(url).then((res: any) => res.json());
 }
