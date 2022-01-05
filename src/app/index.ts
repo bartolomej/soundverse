@@ -1,18 +1,18 @@
 import "./style.css"
-import Application from "./engine/Application";
+import Application from "../engine/Application";
 import * as dat from 'dat.gui';
 
 // shaders
 // @ts-ignore
 import fragment from "./shaders/fragment.glsl";
-import { WebGLRenderer } from "./engine/renderers/WebGLRenderer";
-import { Scene } from "./engine/Scene";
-import { Node } from "./engine/Node";
-import { GLTFLoader } from "./engine/loaders/GLTFLoader";
-import FirstPersonControls from "./engine/controls/FirstPersonControls";
+import { WebGLRenderer } from "../engine/renderers/WebGLRenderer";
+import { Scene } from "../engine/Scene";
+import { Node } from "../engine/Node";
+import { GLTFLoader } from "../engine/loaders/GLTFLoader";
+import FirstPersonControls from "../engine/controls/FirstPersonControls";
 import { GUI } from "dat.gui";
-import { PerspectiveCamera } from "./engine/cameras/PerspectiveCamera";
-import ShaderMaterial from "./engine/materials/ShaderMaterial";
+import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
+import ShaderMaterial from "../engine/materials/ShaderMaterial";
 
 class App extends Application {
 
@@ -23,6 +23,8 @@ class App extends Application {
   private loader: GLTFLoader;
   private controls: FirstPersonControls;
   private shaderMaterial: ShaderMaterial;
+  private walls: Node[];
+  private speaker: Node;
 
   async start() {
     this.loader = new GLTFLoader();
@@ -36,8 +38,8 @@ class App extends Application {
         time: 0
       }
     });
-    const walls = this.scene.findNodes("Wall.*");
-    walls.forEach(wall => {
+    this.walls = this.scene.findNodes("Wall.*");
+    this.walls.forEach(wall => {
       wall.mesh.setMaterial(this.shaderMaterial);
     })
 
@@ -57,7 +59,7 @@ class App extends Application {
       throw new Error('Camera node does not contain a camera reference');
     }
 
-    this.renderer = new WebGLRenderer(this.gl, {clearColor: [0,0,0,1]});
+    this.renderer = new WebGLRenderer(this.gl, {clearColor: [1,1,1,1]});
     this.renderer.prepareScene(this.scene);
     this.resize();
   }

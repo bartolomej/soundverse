@@ -28,7 +28,7 @@ float cosApprox(float x) {
 
 void main()
 {
-    vec2 p=(2.0*gl_FragCoord.xy)*0.001;
+    vec2 p=(2.0*vTexCoord.xy);
     for(int i=1;i<50;i++)
     {
         vec2 newp=p;

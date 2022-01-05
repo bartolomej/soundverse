@@ -9,7 +9,7 @@ const SOURCE_ROOT = path.resolve(__dirname, 'src');
 const DIST_ROOT = path.resolve(__dirname, 'dist');
 
 module.exports = {
-  entry: path.resolve(__dirname, './src/index.ts'),
+  entry: path.resolve(__dirname, './src/app/index.ts'),
   module: {
     rules: [
       {
@@ -39,7 +39,7 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'src/index.html'),
+      template: path.resolve(__dirname, 'src/app/index.html'),
       filename: 'index.html',
     }),
     new CopyPlugin([
