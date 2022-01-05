@@ -62,14 +62,18 @@ export class Scene {
         return this.getNodesWithProperty("light");
     }
 
-    findNode(name: string) {
+    findNodes(regex: string) {
         const nodes: Node[] = [];
         this.traverse((node) => {
-            if (node.name === name) {
+            if (new RegExp(regex).test(node.name)) {
                 nodes.push(node);
             }
         });
-        return nodes[0];
+        return nodes;
+    }
+
+    findNode(regex: string) {
+        return this.findNodes(regex)[0];
     }
 
     clone() {

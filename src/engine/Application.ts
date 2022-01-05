@@ -28,10 +28,11 @@ export default class Application {
 
   _update (time: number) {
     this._resize();
-    const dt = (this.t0 ? time - this.t0 : time) * 0.001;
-    this.update(dt, time);
-    this.render(dt, time);
-    this.t0 = time;
+    const t = time * 0.001;
+    const dt = (this.t0 ? t - this.t0 : t);
+    this.update(dt, t);
+    this.render(dt, t);
+    this.t0 = t;
     requestAnimationFrame(this._update);
   }
 

@@ -213,12 +213,6 @@ export class WebGLRenderer {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const program = this.defaultProgram;
-    gl.useProgram(program.program);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(program.uniforms.uTexture, 0);
-
     let matrix = mat4.create();
     let {projection} = camera.camera;
     let matrixStack = [];
@@ -226,7 +220,6 @@ export class WebGLRenderer {
     const viewMatrix = camera.getGlobalTransform();
     mat4.invert(viewMatrix, viewMatrix);
     mat4.copy(matrix, viewMatrix);
-    gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
 
     let lightCounter = 0;
 
@@ -235,7 +228,7 @@ export class WebGLRenderer {
         matrixStack.push(mat4.clone(matrix));
         mat4.mul(matrix, matrix, node.matrix);
         if (node.light instanceof Light) {
-          this.renderLight(node, program, lightCounter)
+          this.renderLight(node, lightCounter)
           lightCounter++;
         }
         this.renderNode(node, matrix, projection)
@@ -246,9 +239,9 @@ export class WebGLRenderer {
     );
   }
 
-  renderLight(node, program, lightCounter) {
+  renderLight(node, lightCounter) {
     const { light } = node;
-    const { gl } = this;
+    const { gl, defaultProgram: program } = this;
 
     let color = vec3.clone(light.ambientColor);
     vec3.scale(color, color, 1.0 / 255.0);
@@ -287,13 +280,21 @@ export class WebGLRenderer {
 
     const vao = this.glObjects.get(primitive);
     const material = primitive.material;
+    let program = this.defaultProgram;
 
     if (material instanceof ShaderMaterial) {
-      const program = this.programs.get(material);
-      gl.useProgram(program.program);
-      gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
-      gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
+      program = this.programs.get(material);
+    }
 
+    gl.useProgram(program.program);
+
+    // set standard uniform values
+    gl.uniformMatrix4fv(program.uniforms.uProjection, false, projection);
+    gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
+    gl.uniform1i(program.uniforms.uTexture, 0);
+
+    if (material instanceof ShaderMaterial) {
+      // set non-standard (custom) uniform values
       for (const name in material.uniforms) {
         const {type, value} = material.uniforms[name];
         const func = `uniform${type}`;
@@ -303,7 +304,6 @@ export class WebGLRenderer {
     }
 
     const texture = material.baseColorTexture;
-
     const glTexture = this.glObjects.get(texture?.image);
     const glSampler = this.glObjects.get(texture?.sampler);
 

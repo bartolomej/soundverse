@@ -26,7 +26,7 @@ class App extends Application {
 
   async start() {
     this.loader = new GLTFLoader();
-    await this.loader.load('./models/room/room.gltf');
+    await this.loader.load('./models/gallery/gallery.gltf');
 
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
 
@@ -36,7 +36,10 @@ class App extends Application {
         time: 0
       }
     });
-    this.scene.findNode("PictureFrame").mesh.setMaterial(this.shaderMaterial);
+    const walls = this.scene.findNodes("Wall.*");
+    walls.forEach(wall => {
+      wall.mesh.setMaterial(this.shaderMaterial);
+    })
 
     this.camera = new Node({
       translation: [0,2,0],
