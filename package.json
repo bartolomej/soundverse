@@ -21,8 +21,9 @@
     "@babel/preset-env": "^7.7.7",
     "@tweakpane/core": "^1.0.8",
     "@types/dat.gui": "^0.7.7",
+    "@types/howler": "^2.2.4",
     "@types/jest": "^24.9.0",
-    "@types/node": "^13.1.8",
+    "@types/node": "^14.18.5",
     "babel-jest": "^24.9.0",
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
@@ -37,7 +38,7 @@
     "style-loader": "^1.1.2",
     "ts-jest": "^24.3.0",
     "ts-loader": "^6.2.1",
-    "typescript": "^3.7.5",
+    "typescript": "^4.5.4",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1",
@@ -45,7 +46,10 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
+    "@netlify/functions": "^0.10.0",
     "dat.gui": "^0.7.7",
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "howler": "^2.2.3",
+    "node-fetch": "^2.6.6"
   }
 }
