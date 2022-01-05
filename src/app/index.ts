@@ -1,6 +1,6 @@
 import "./style.css"
 import Application from "../engine/Application";
-import * as dat from 'dat.gui';
+import { GUI } from 'dat.gui';
 
 // shaders
 // @ts-ignore
@@ -10,9 +10,10 @@ import { Scene } from "../engine/Scene";
 import { Node } from "../engine/Node";
 import { GLTFLoader } from "../engine/loaders/GLTFLoader";
 import FirstPersonControls from "../engine/controls/FirstPersonControls";
-import { GUI } from "dat.gui";
 import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
 import ShaderMaterial from "../engine/materials/ShaderMaterial";
+import Speaker from "./Speaker";
+import Music, { ArtistId } from "./Music";
 
 class App extends Application {
 
@@ -24,7 +25,8 @@ class App extends Application {
   private controls: FirstPersonControls;
   private shaderMaterial: ShaderMaterial;
   private walls: Node[];
-  private speaker: Node;
+  private speaker: Speaker;
+  private music: Music;
 
   async start() {
     this.loader = new GLTFLoader();
@@ -49,15 +51,16 @@ class App extends Application {
     })
     this.controls = new FirstPersonControls(this.camera);
 
+    const light = this.scene.findNode("Light")
+    this.music = new Music();
+    await this.music.prefetch(); // download songs
+    const artist = this.music.getArtist(ArtistId.MAX_COOPER);
+
+    this.speaker = new Speaker(light.translation);
+    this.speaker.setPlaylist(artist.trackList);
+    this.speaker.play();
+
     this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
-
-    if (!this.scene || !this.camera) {
-      throw new Error('Scene or Camera not present in glTF');
-    }
-
-    if (!this.camera.camera) {
-      throw new Error('Camera node does not contain a camera reference');
-    }
 
     this.renderer = new WebGLRenderer(this.gl, {clearColor: [1,1,1,1]});
     this.renderer.prepareScene(this.scene);
@@ -67,6 +70,7 @@ class App extends Application {
   update (dt: number, t: number) {
     this.controls?.update(dt);
     this.shaderMaterial?.setUniform("time", t);
+    this.speaker?.setPlayerPosition(this.camera.translation);
   }
 
   render() {
