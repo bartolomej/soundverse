@@ -12,11 +12,35 @@ export default class Speaker {
   private currentIndex: number;
   private autoplay: boolean;
   private fadeDuration = 4000;
+  private analyzer: AnalyserNode;
 
   constructor (position: vec3, autoplay = true) {
     this.position = position;
     this.autoplay = autoplay;
     this.tracks = [];
+  }
+
+  createAnalyzer() {
+    this.analyzer = Howler.ctx.createAnalyser();
+    Howler.masterGain.connect(this.analyzer);
+    this.analyzer.connect(Howler.ctx.destination);
+  }
+
+  /**
+   * Returns current frequency data.
+   *
+   * Each item in the array represents the decibel value for a specific frequency.
+   * The frequencies are spread linearly from 0 to 1/2 of the sample rate.
+   * For example, for 48000 sample rate, the last item of the array will represent the decibel value for 24000 Hz
+   *
+   * https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getByteFrequencyData
+   */
+  getFrequencyData() {
+    this.analyzer.fftSize = 2048;
+    const bufferLength = this.analyzer.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    this.analyzer.getByteFrequencyData(dataArray);
+    return dataArray;
   }
 
   getCurrentTrack () {
@@ -89,6 +113,9 @@ export default class Speaker {
   }
 
   play () {
+    if (!this.analyzer) {
+      this.createAnalyzer();
+    }
     const track = this.getCurrentTrack();
     const playTrack = (track: Howl) => {
       if (!track.playing()) {
