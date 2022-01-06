@@ -35,8 +35,8 @@ export default class Speaker {
    *
    * https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getByteFrequencyData
    */
-  getFrequencyData() {
-    this.analyzer.fftSize = 2048;
+  getFrequencyData(fftSize = 2048) {
+    this.analyzer.fftSize = fftSize;
     const bufferLength = this.analyzer.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     this.analyzer.getByteFrequencyData(dataArray);

@@ -299,7 +299,15 @@ export class WebGLRenderer {
         const {type, value} = material.uniforms[name];
         const func = `uniform${type}`;
         const location = program.uniforms[name];
-        gl[func](location, value);
+        if (gl[func]) {
+          if (typeof value === "object") {
+            gl[func](location, ...value);
+          } else {
+            gl[func](location, value);
+          }
+        } else {
+          console.error(`GLSL uniform type ${type} not supported!`)
+        }
       }
     }
 

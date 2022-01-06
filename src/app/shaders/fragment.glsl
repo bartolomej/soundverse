@@ -6,6 +6,7 @@ uniform mediump sampler2D uTexture;
 
 // non-standard uniforms
 uniform float time;
+uniform vec4 frequencies;
 
 // standard inputs (varyings)
 in vec2 vTexCoord;
@@ -32,8 +33,8 @@ void main()
     for(int i=1;i<50;i++)
     {
         vec2 newp=p;
-        newp.x+=0.6/float(i)*sin(float(i)*p.y+time+0.3*float(i))+1.0;
-        newp.y+=0.6/float(i)*sin(float(i)*p.x+time+0.3*float(i+10))-1.4;
+        newp.x+=0.6/float(i)*sin(float(i)*p.y+time+0.3*float(i))+frequencies.x * 0.1;
+        newp.y+=0.6/float(i)*sin(float(i)*p.x+time+0.3*float(i+10))-frequencies.y * 0.1;
         p=newp;
     }
     vec3 col=vec3(0.5*sin(3.0*p.x)+0.5,0.5*sin(3.0*p.y)+0.5,sin(p.x+p.y));

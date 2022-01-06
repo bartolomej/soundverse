@@ -12,8 +12,9 @@ import { GLTFLoader } from "../engine/loaders/GLTFLoader";
 import FirstPersonControls from "../engine/controls/FirstPersonControls";
 import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
 import ShaderMaterial from "../engine/materials/ShaderMaterial";
-import Speaker from "./Speaker";
-import Music, { ArtistId } from "./Music";
+import Speaker from "./sound/Speaker";
+import Music, { ArtistId } from "./sound/Music";
+import AudioProcessor from "./sound/Processor";
 
 class App extends Application {
 
@@ -27,6 +28,7 @@ class App extends Application {
   private walls: Node[];
   private speaker: Speaker;
   private music: Music;
+  private fftSize: number = 32;
 
   async start() {
     this.loader = new GLTFLoader();
@@ -37,7 +39,8 @@ class App extends Application {
     this.shaderMaterial = new ShaderMaterial({
       fragmentShader: fragment,
       uniforms: {
-        time: 0
+        time: 0,
+        frequencies: new Array(4).fill(0)
       }
     });
     this.walls = this.scene.findNodes("Wall.*");
@@ -70,6 +73,11 @@ class App extends Application {
   update (dt: number, t: number) {
     this.controls?.update(dt);
     this.shaderMaterial?.setUniform("time", t);
+    const fft = this.speaker?.getFrequencyData(this.fftSize);
+    if (fft) {
+      const sampledFft = AudioProcessor.sampleFft(fft, 4, Float32Array, 255);
+      this.shaderMaterial?.setUniform("frequencies", sampledFft);
+    }
     this.speaker?.setPlayerPosition(this.camera.translation);
   }
 
