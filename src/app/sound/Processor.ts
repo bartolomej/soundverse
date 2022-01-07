@@ -16,4 +16,12 @@ export default class AudioProcessor {
     return result;
   }
 
+  static normalize (array: ArrayLike<any>, normaliseFactor = 1) {
+    const result = new Float32Array(array.length);
+    for (let i = 0; i < array.length; i++) {
+      result[i] = array[i] / normaliseFactor;
+    }
+    return result;
+  }
+
 }

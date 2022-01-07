@@ -296,17 +296,19 @@ export class WebGLRenderer {
     if (material instanceof ShaderMaterial) {
       // set non-standard (custom) uniform values
       for (const name in material.uniforms) {
-        const {type, value} = material.uniforms[name];
-        const func = `uniform${type}`;
-        const location = program.uniforms[name];
-        if (gl[func]) {
-          if (typeof value === "object") {
-            gl[func](location, ...value);
+        const uniform = material.uniforms[name];
+        const func = `uniform${uniform.type}`;
+        for (const webGLName of uniform.getNames(name)) {
+          const location = program.uniforms[webGLName];
+          if (gl[func]) {
+            if (uniform.isVector()) {
+              gl[func](location, ...uniform.value);
+            } else {
+              gl[func](location, uniform.value);
+            }
           } else {
-            gl[func](location, value);
+            console.error(`GLSL uniform type ${uniform.type} not supported!`)
           }
-        } else {
-          console.error(`GLSL uniform type ${type} not supported!`)
         }
       }
     }

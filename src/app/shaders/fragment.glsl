@@ -12,7 +12,7 @@ in vec3 vNormal;
 
 // non-standard uniforms
 uniform float time;
-uniform vec4 frequencies;
+uniform float[32] frequencies;
 
 out vec4 oColor;
 
@@ -33,8 +33,8 @@ void main()
     for(int i=1;i<50;i++)
     {
         vec2 newp=p;
-        newp.x+=0.6/float(i)*sin(float(i)*p.y+time+0.3*float(i))+frequencies.x * 0.1;
-        newp.y+=0.6/float(i)*sin(float(i)*p.x+time+0.3*float(i+10))-frequencies.y * 0.1;
+        newp.x+=0.6/float(i)*sin(float(i)*p.y+time+0.3*float(i))+frequencies[i] * 0.1;
+        newp.y+=0.6/float(i)*sin(float(i)*p.x+time+0.3*float(i+10))-frequencies[i+1] * 0.1;
         p=newp;
     }
     vec3 col=vec3(0.5*sin(3.0*p.x)+0.5,0.5*sin(3.0*p.y)+0.5,sin(p.x+p.y));

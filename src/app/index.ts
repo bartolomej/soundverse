@@ -40,7 +40,7 @@ class App extends Application {
       fragmentShader: fragment,
       uniforms: {
         time: 0,
-        frequencies: new Array(4).fill(0)
+        frequencies: new Array(this.fftSize).fill(0)
       }
     });
     this.walls = this.scene.findNodes("Wall.*");
@@ -75,8 +75,7 @@ class App extends Application {
     this.shaderMaterial?.setUniform("time", t);
     const fft = this.speaker?.getFrequencyData(this.fftSize);
     if (fft) {
-      const sampledFft = AudioProcessor.sampleFft(fft, 4, Float32Array, 255);
-      this.shaderMaterial?.setUniform("frequencies", sampledFft);
+      this.shaderMaterial?.setUniform("frequencies", AudioProcessor.normalize(fft, 255));
     }
     this.speaker?.setPlayerPosition(this.camera.translation);
   }
