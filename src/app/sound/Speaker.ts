@@ -1,6 +1,6 @@
 import { Howl, Howler } from "howler";
 import { vec3 } from "gl-matrix";
-import { Track } from "./Music";
+import { Track } from "./DeezerGateway";
 
 /**
  * Music speaker in 3D space.
@@ -93,7 +93,7 @@ export default class Speaker {
   playNext() {
     const currentTrack = this.getCurrentTrack();
     currentTrack.fade(1, 0, this.fadeDuration)
-    if (this.currentIndex <= this.tracks.length - 1) {
+    if (this.currentIndex < this.tracks.length - 1) {
       this.currentIndex++;
     } else {
       this.currentIndex = 0;

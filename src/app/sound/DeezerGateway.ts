@@ -21,14 +21,20 @@ export type Track = {
 export enum ArtistId {
   RUFUS_DU_SOL = 5571502,
   MAX_COOPER = 181041,
+  BICEP = 369056
 }
 
-export default class Music {
+/**
+ * Deezer API gateway.
+ * https://developers.deezer.com/api
+ */
+export default class DeezerGateway {
 
   // predefined list of artists to chose from
   private readonly artistIds: number[] = [
     ArtistId.RUFUS_DU_SOL,
-    ArtistId.MAX_COOPER
+    ArtistId.MAX_COOPER,
+    ArtistId.BICEP
   ];
   private artists: Artist[];
 

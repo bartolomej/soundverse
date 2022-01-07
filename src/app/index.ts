@@ -13,7 +13,7 @@ import FirstPersonControls from "../engine/controls/FirstPersonControls";
 import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
 import ShaderMaterial from "../engine/materials/ShaderMaterial";
 import Speaker from "./sound/Speaker";
-import Music, { ArtistId } from "./sound/Music";
+import DeezerGateway, { ArtistId } from "./sound/DeezerGateway";
 import AudioProcessor from "./sound/Processor";
 
 class App extends Application {
@@ -27,7 +27,7 @@ class App extends Application {
   private shaderMaterial: ShaderMaterial;
   private walls: Node[];
   private speaker: Speaker;
-  private music: Music;
+  private deezer: DeezerGateway;
   private fftSize: number = 32;
 
   async start() {
@@ -55,9 +55,9 @@ class App extends Application {
     this.controls = new FirstPersonControls(this.camera);
 
     const light = this.scene.findNode("Light")
-    this.music = new Music();
-    await this.music.prefetch(); // download songs
-    const artist = this.music.getArtist(ArtistId.MAX_COOPER);
+    this.deezer = new DeezerGateway();
+    await this.deezer.prefetch(); // download songs
+    const artist = this.deezer.getArtist(ArtistId.BICEP);
 
     this.speaker = new Speaker(light.translation);
     this.speaker.setPlaylist(artist.trackList);
