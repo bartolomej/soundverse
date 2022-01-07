@@ -3,13 +3,13 @@
 An interactive visual sound experience, made in WebGL 🎶.
 
 ## Architecture
-This app has two major modules:
+This app has two top level modules:
 - `engine`: 3D rendering engine that uses WebGL
 - `app`: application specific logic
 
 Engine module has a similar API to some other well known 3D rendering libraries like [Three.js](https://threejs.org/), so this module could be replaced with some 3rd party library without much of a hassle.
 
-App module also has a few useful classes (located in `app/sound` module) that are useful for retrieving, playing and analyzing sound data.
+App module also has a few useful classes (located in [`app/sound`](./src/app/sound) module) that are used for retrieving, playing and analyzing sound data.
 
 ## Custom shaders
 
@@ -74,6 +74,12 @@ void main() {
     oColor = vec4(frequencies.xyz, 1);
 }
 ```
+
+## Inspiration
+
+- https://refikanadol.com
+- https://github.com/jberg/butterchurn
+- https://www.vangoghnyc.com
 
 ## Resources
 - [webgl2-examples](https://github.com/UL-FRI-LGM/webgl2-examples) - [Computer Graphics 2020](https://www.youtube.com/playlist?list=PLhMDcXgR0MToUfNKisP0MWu46RrTWmpiI) university course
