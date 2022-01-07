@@ -1,6 +1,6 @@
 // core shaders
 // @ts-ignore
-import fragment from "./shaders/fragment.glsl";
+import fragment from "./shaders/curl.glsl";
 // @ts-ignore
 import vertex from "./shaders/vertex.glsl";
 

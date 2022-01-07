@@ -4,7 +4,7 @@ import { GUI } from 'dat.gui';
 
 // shaders
 // @ts-ignore
-import fragment from "./shaders/fragment.glsl";
+import fragment from "./shaders/curl.glsl";
 import { WebGLRenderer } from "../engine/renderers/WebGLRenderer";
 import { Scene } from "../engine/Scene";
 import { Node } from "../engine/Node";

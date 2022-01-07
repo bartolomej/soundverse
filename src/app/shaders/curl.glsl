@@ -29,7 +29,8 @@ float cosApprox(float x) {
 
 void main()
 {
-    vec2 p=(2.0*vTexCoord.xy);
+    vec2 position = vTexCoord - vec2(0.5, 0.5);
+    vec2 p=(2.0*position.xy);
     for(int i=1;i<50;i++)
     {
         vec2 newp=p;
