@@ -4,15 +4,15 @@ precision mediump float;
 // standard uniforms
 uniform mediump sampler2D uTexture;
 
-// non-standard uniforms
-uniform float time;
-uniform vec4 frequencies;
-
 // standard inputs (varyings)
 in vec2 vTexCoord;
 in vec3 vVertexViewPosition;
 in vec3 vVertexPosition;
 in vec3 vNormal;
+
+// non-standard uniforms
+uniform float time;
+uniform vec4 frequencies;
 
 out vec4 oColor;
 
