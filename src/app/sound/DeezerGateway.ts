@@ -43,7 +43,7 @@ export default class DeezerGateway {
   }
 
   async fetchArtist(id: number) {
-    const url = `https://soundverse.netlify.app/.netlify/functions/deezer-proxy?artistId=${id}`;
+    const url = `https://soundverse.netlify.app/.netlify/functions/artist?id=${id}`;
     return fetch(url).then(res => res.json())
   }
 

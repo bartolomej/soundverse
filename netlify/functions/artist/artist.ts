@@ -2,9 +2,9 @@ import { Handler } from '@netlify/functions'
 import * as fetch from "node-fetch";
 
 export const handler: Handler = async (event, context) => {
-  const { artistId } = event.queryStringParameters
+  const { id } = event.queryStringParameters
 
-  const artist = await fetchArtist(artistId);
+  const artist = await fetchArtist(id);
 
   return {
     statusCode: 200,
