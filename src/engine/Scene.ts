@@ -1,18 +1,16 @@
-import { Node } from './Node.js';
+import { Object3D } from './core/Object3D.js';
 
-type TraverseCb = (node: Node) => void;
-type SceneOptions = {
-    nodes?: Node[];
-}
+type TraverseCb = (node: Object3D) => void;
+export type SceneOptions = Partial<Scene>;
 
 export class Scene {
-    private readonly nodes: Node[];
+    nodes: Object3D[];
 
-    constructor(options: SceneOptions = {}) {
-        this.nodes = [...(options.nodes || [])];
+    constructor(options?: SceneOptions) {
+        this.nodes = options.nodes ?? [];
     }
 
-    addNode(node: Node) {
+    addNode(node: Object3D) {
         this.nodes.push(node);
     }
 
@@ -22,7 +20,7 @@ export class Scene {
         }
     }
 
-    traverseNode(node: Node, before?: TraverseCb, after?: TraverseCb) {
+    traverseNode(node: Object3D, before?: TraverseCb, after?: TraverseCb) {
         if (before) {
             before(node);
         }
@@ -45,7 +43,7 @@ export class Scene {
     }
 
     getNodesWithProperty(property: string) {
-        const nodes: Node[] = [];
+        const nodes: Object3D[] = [];
         this.traverse((node) => {
             if (node.hasOwnProperty(property)) {
                 nodes.push(node);
@@ -63,7 +61,7 @@ export class Scene {
     }
 
     findNodes(regex: string) {
-        const nodes: Node[] = [];
+        const nodes: Object3D[] = [];
         this.traverse((node) => {
             if (new RegExp(regex).test(node.name)) {
                 nodes.push(node);
@@ -76,7 +74,7 @@ export class Scene {
         return this.findNodes(regex)[0];
     }
 
-    clone() {
+    clone(): Scene {
         return new Scene({
             ...this,
             nodes: this.nodes.map(node => node.clone()),

@@ -1,6 +1,6 @@
-import { Material } from "./Material";
+import {Material, MaterialOptions} from "./Material";
 
-type ShaderMaterialOptions = {
+type ShaderMaterialOptions = MaterialOptions & {
   uniforms?: UniformProp;
   fragmentShader: string;
 }
@@ -57,7 +57,7 @@ export class ShaderUniform {
 type UniformsMap = Record<string, ShaderUniform>;
 
 export default class ShaderMaterial extends Material {
-  private fragmentShader: string;
+  fragmentShader: string;
   uniforms: UniformsMap;
 
   constructor (options: ShaderMaterialOptions) {

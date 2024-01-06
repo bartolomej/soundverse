@@ -1,10 +1,25 @@
 import {mat4} from "gl-matrix"
 
-import { Camera } from './Camera.js';
+import {Camera, CameraOptions} from './Camera';
+
+type OrthographicCameraOptions = CameraOptions & {
+    left?: number;
+    right?: number;
+    bottom?: number;
+    top?: number;
+    near?: number;
+    far?: number;
+}
 
 export class OrthographicCamera extends Camera {
+    public left: number;
+    public right: number;
+    public bottom: number;
+    public top: number;
+    public near: number;
+    public far: number;
 
-    constructor(options = {}) {
+    constructor(options?: OrthographicCameraOptions) {
         super(options);
 
         this.left = options.left || -1;

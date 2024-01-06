@@ -1,8 +1,35 @@
 import { vec3, vec4 } from 'gl-matrix';
+import {Texture} from "../textures/Texture";
+
+export type MaterialOptions = Partial<Material>;
 
 export class Material {
+    baseColorTexture: Texture;
+    baseColorTexCoord: number;
+    baseColorFactor: vec4;
 
-    constructor(options = {}) {
+    metallicRoughnessTexture: Texture;
+    metallicRoughnessTexCoord: number;
+    metallicFactor: number;
+    roughnessFactor: number;
+
+    normalTexture: Texture;
+    normalTexCoord: number;
+    normalFactor: number;
+
+    occlusionTexture: Texture;
+    occlusionTexCoord: number;
+    occlusionFactor: number;
+
+    emissiveTexture: Texture;
+    emissiveTexCoord: number;
+    emissiveFactor: vec3;
+
+    alphaMode: string;
+    alphaCutoff: number;
+    doubleSided: boolean;
+
+    constructor(options: MaterialOptions) {
         this.baseColorTexture = options.baseColorTexture || null;
         this.baseColorTexCoord = options.baseColorTexCoord || 0;
         this.baseColorFactor = options.baseColorFactor
