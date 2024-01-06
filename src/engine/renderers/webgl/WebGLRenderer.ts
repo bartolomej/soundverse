@@ -1,23 +1,38 @@
-import { mat4, vec3 } from 'gl-matrix';
+import {mat4, vec3, vec4} from 'gl-matrix';
 
-import { WebGL } from "./WebGL";
-import { Light } from "../lights/Light";
+import {WebGL, WebGLProgramBundle} from "./WebGL";
+import { Light } from "../../lights/Light";
 
-import { createFragmentShader, createVertexShader } from "./shaders";
-import ShaderMaterial from "../materials/ShaderMaterial";
+import { createFragmentShader, createVertexShader } from "./core-shaders";
+import ShaderMaterial, {ShaderUniform, UniformType} from "../../materials/ShaderMaterial";
+import {Scene} from "../../Scene";
+import {Object3D} from "../../core/Object3D";
+import {Mesh} from "../../core/Mesh";
+import {PrimitiveAttributeName, Primitive} from "../../core/Primitive";
+import {TextureSampler} from "../../textures/TextureSampler";
+import {Texture} from "../../textures/Texture";
+import {Material} from "../../materials/Material";
+import {BufferView} from "../../core/BufferView";
 
 // This class prepares all assets for use with WebGL
 // and takes care of rendering.
 
-export class WebGLRenderer {
+type WebGLRendererOptions = {
+  clearColor: vec4;
+}
 
-  constructor (gl, options = {}) {
+export class WebGLRenderer {
+  private readonly gl: WebGL2RenderingContext;
+  private readonly clearColor: vec4;
+  private readonly defaultTexture: WebGLTexture;
+  private programs: Map<any, WebGLProgramBundle>;
+  private glObjects: Map<any, any>;
+
+  constructor (gl: WebGL2RenderingContext, options?: WebGLRendererOptions) {
     this.gl = gl;
-    this.clearColor = options.clearColor || [1,1,1,1];
+    this.clearColor = options.clearColor ?? [1,1,1,1];
     this.glObjects = new Map();
     this.programs = new Map();
-
-    this.preparePrograms(options);
 
     this.defaultTexture = WebGL.createTexture(gl, {
       data: new Uint8Array([255, 255, 255, 255]),
@@ -25,7 +40,8 @@ export class WebGLRenderer {
       height: 1,
     });
 
-    gl.clearColor(...this.clearColor);
+    const [r, g, b, a] = this.clearColor;
+    gl.clearColor(r, g, b, a);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
   }
@@ -34,17 +50,17 @@ export class WebGLRenderer {
     return this.programs.get("default")
   }
 
-  preparePrograms(options = {}) {
+  preparePrograms(options: {nLights: number}) {
     const program = WebGL.buildProgram(this.gl, {
       vertex: createVertexShader(),
       fragment: createFragmentShader({
-        nLights: options.nLights || 1
+        nLights: options.nLights
       })
     });
     this.programs.set("default", program);
   }
 
-  prepareBufferView (bufferView) {
+  prepareBufferView (bufferView: BufferView) {
     if (this.glObjects.has(bufferView)) {
       return this.glObjects.get(bufferView);
     }
@@ -61,7 +77,7 @@ export class WebGLRenderer {
     return glBuffer;
   }
 
-  prepareSampler (sampler) {
+  prepareSampler (sampler: TextureSampler) {
     if (this.glObjects.has(sampler)) {
       return this.glObjects.get(sampler);
     }
@@ -71,7 +87,7 @@ export class WebGLRenderer {
     return glSampler;
   }
 
-  prepareImage (image) {
+  prepareImage (image: HTMLImageElement) {
     if (this.glObjects.has(image)) {
       return this.glObjects.get(image);
     }
@@ -81,7 +97,7 @@ export class WebGLRenderer {
     return glTexture;
   }
 
-  prepareTexture (texture) {
+  prepareTexture (texture: Texture) {
     const gl = this.gl;
 
     this.prepareSampler(texture.sampler);
@@ -101,7 +117,7 @@ export class WebGLRenderer {
     }
   }
 
-  prepareMaterial (material) {
+  prepareMaterial (material: Material) {
     if (material instanceof ShaderMaterial) {
       this.prepareShaderMaterial(material);
     }
@@ -122,19 +138,20 @@ export class WebGLRenderer {
     }
   }
 
-  prepareShaderMaterial(material) {
+  prepareShaderMaterial(material: ShaderMaterial) {
     try {
       const program = WebGL.buildProgram(this.gl, {
-        vertex: createVertexShader(), // TODO: add support for custom vertex shader
+        // TODO: add support for custom vertex shaders?
+        vertex: createVertexShader(),
         fragment: material.fragmentShader,
       });
       this.programs.set(material, program);
     } catch (e) {
-      console.error("ShaderMaterial error: ", e)
+      throw new Error("ShaderMaterial error: " + e)
     }
   }
 
-  preparePrimitive (primitive) {
+  preparePrimitive (primitive: Primitive) {
     if (this.glObjects.has(primitive)) {
       return this.glObjects.get(primitive);
     }
@@ -151,17 +168,18 @@ export class WebGLRenderer {
       gl.bindBuffer(bufferView.target, buffer);
     }
 
-    // this is an application-scoped convention, matching the shaders
-    const attributeNameToIndexMap = {
+    // This is an application-scoped convention (originating from glTF), matching the shaders.
+    const attributeNameToIndexLookup: Record<PrimitiveAttributeName, number> = {
       POSITION: 0,
       TEXCOORD_0: 1,
       NORMAL: 2,
-    };
+    }
 
     for (const name in primitive.attributes) {
-      const accessor = primitive.attributes[name];
+      const typedName = name as PrimitiveAttributeName;
+      const accessor = primitive.attributes[typedName];
       const bufferView = accessor.bufferView;
-      const attributeIndex = attributeNameToIndexMap[name];
+      const attributeIndex = attributeNameToIndexLookup[typedName]
 
       if (attributeIndex !== undefined) {
         bufferView.target = gl.ARRAY_BUFFER;
@@ -182,56 +200,56 @@ export class WebGLRenderer {
     return vao;
   }
 
-  prepareMesh (mesh) {
+  prepareMesh (mesh: Mesh) {
     for (const primitive of mesh.primitives) {
       this.preparePrimitive(primitive);
     }
   }
 
-  prepareNode (node) {
-    if (node.mesh) {
-      this.prepareMesh(node.mesh);
+  prepare3dObject (object: Object3D) {
+    if (object.mesh) {
+      this.prepareMesh(object.mesh);
     }
-    for (const child of node.children) {
-      this.prepareNode(child);
+    for (const child of object.children) {
+      this.prepare3dObject(child);
     }
   }
 
-  prepareScene (scene) {
+  prepareScene (scene: Scene) {
     // rebuild programs if complete scene info is known on startup
     this.preparePrograms({
-      ...this.options,
-      nLights: scene.getTotalLights()
+      // TODO: I think our shaders break for >1 lights
+      nLights: Math.min(scene.getTotalLights(), 1)
     })
     for (const node of scene.nodes) {
-      this.prepareNode(node);
+      this.prepare3dObject(node);
     }
   }
 
-  render (scene, camera) {
+  render (scene: Scene, camera: Object3D) {
     const gl = this.gl;
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     let matrix = mat4.create();
     let {projection} = camera.camera;
-    let matrixStack = [];
+    let matrixStack: mat4[] = [];
 
     const viewMatrix = camera.getGlobalTransform();
     mat4.invert(viewMatrix, viewMatrix);
     mat4.copy(matrix, viewMatrix);
 
-    let lightCounter = 0;
+    let lightCount = 0;
 
     scene.traverse(
       node => {
         matrixStack.push(mat4.clone(matrix));
         mat4.mul(matrix, matrix, node.matrix);
         if (node.light instanceof Light) {
-          this.renderLight(node, lightCounter)
-          lightCounter++;
+          this.renderLight(node, lightCount)
+          lightCount++;
         }
-        this.renderNode(node, matrix, projection)
+        this.renderObject3D(node, matrix, projection)
       },
       node => {
         matrix = matrixStack.pop();
@@ -239,43 +257,43 @@ export class WebGLRenderer {
     );
   }
 
-  renderLight(node, lightCounter) {
-    const { light } = node;
+  renderLight(object: Object3D, lightIndex: number) {
+    const { light } = object;
     const { gl, defaultProgram: program } = this;
 
     let color = vec3.clone(light.ambientColor);
     vec3.scale(color, color, 1.0 / 255.0);
-    gl.uniform3fv(program.uniforms['uAmbientColor[' + lightCounter + ']'], color);
+    gl.uniform3fv(program.uniforms['uAmbientColor[' + lightIndex + ']'], color);
     color = vec3.clone(light.diffuseColor);
     vec3.scale(color, color, 1.0 / 255.0);
-    gl.uniform3fv(program.uniforms['uDiffuseColor[' + lightCounter + ']'], color);
+    gl.uniform3fv(program.uniforms['uDiffuseColor[' + lightIndex + ']'], color);
     color = vec3.clone(light.specularColor);
     vec3.scale(color, color, 1.0 / 255.0);
-    gl.uniform3fv(program.uniforms['uSpecularColor[' + lightCounter + ']'], color);
-    let position = [0, 0, 0];
-    mat4.getTranslation(position, node.matrix);
+    gl.uniform3fv(program.uniforms['uSpecularColor[' + lightIndex + ']'], color);
+    let position: vec3 = [0, 0, 0];
+    mat4.getTranslation(position, object.matrix);
 
-    gl.uniform3fv(program.uniforms['uLightPosition[' + lightCounter + ']'], position);
-    gl.uniform1f(program.uniforms['uShininess[' + lightCounter + ']'], light.shininess);
-    gl.uniform3fv(program.uniforms['uLightAttenuation[' + lightCounter + ']'], light.attenuatuion);
+    gl.uniform3fv(program.uniforms['uLightPosition[' + lightIndex + ']'], position);
+    gl.uniform1f(program.uniforms['uShininess[' + lightIndex + ']'], light.shininess);
+    gl.uniform3fv(program.uniforms['uLightAttenuation[' + lightIndex + ']'], light.attenuatuion);
   }
 
-  renderNode (node, mvpMatrix, projection) {
+  renderObject3D (object3d: Object3D, mvpMatrix: mat4, projection: mat4) {
     const program = this.defaultProgram;
     this.gl.uniformMatrix4fv(program.uniforms.uViewModel, false, mvpMatrix);
 
-    if (node.mesh) {
-      for (const primitive of node.mesh.primitives) {
+    if (object3d.mesh) {
+      for (const primitive of object3d.mesh.primitives) {
         this.renderPrimitive(primitive, mvpMatrix, projection);
       }
     }
 
-    for (const child of node.children) {
-      this.renderNode(child, mvpMatrix, projection);
+    for (const child of object3d.children) {
+      this.renderObject3D(child, mvpMatrix, projection);
     }
   }
 
-  renderPrimitive (primitive, mvpMatrix, projection) {
+  renderPrimitive (primitive: Primitive, mvpMatrix: mat4, projection: mat4) {
     const gl = this.gl;
 
     const vao = this.glObjects.get(primitive);
@@ -294,23 +312,7 @@ export class WebGLRenderer {
     gl.uniform1i(program.uniforms.uTexture, 0);
 
     if (material instanceof ShaderMaterial) {
-      // set non-standard (custom) uniform values
-      for (const name in material.uniforms) {
-        const uniform = material.uniforms[name];
-        const func = `uniform${uniform.type}`;
-        for (const webGLName of uniform.getNames(name)) {
-          const location = program.uniforms[webGLName];
-          if (gl[func]) {
-            if (uniform.isVector()) {
-              gl[func](location, ...uniform.value);
-            } else {
-              gl[func](location, uniform.value);
-            }
-          } else {
-            console.error(`GLSL uniform type ${uniform.type} not supported!`)
-          }
-        }
-      }
+      this.setShaderUniformValues(program, material)
     }
 
     const texture = material.baseColorTexture;
@@ -332,6 +334,46 @@ export class WebGLRenderer {
       const count = primitive.attributes.POSITION.count;
       gl.drawArrays(mode, 0, count);
     }
+  }
+
+  private setShaderUniformValues(program: WebGLProgramBundle, material: ShaderMaterial) {
+    for (const name in material.uniforms) {
+      const uniform = material.uniforms[name];
+      const func: `uniform${UniformType}` = `uniform${uniform.type}`;
+      for (const webGLName of this.getGlUniformParamNames(name, uniform)) {
+        const location = program.uniforms[webGLName];
+        if (this.gl[func]) {
+          const shouldSpreadValue = typeof uniform.value === "object" && !uniform.type.endsWith("v");
+          if (shouldSpreadValue) {
+            // @ts-ignore
+            this.gl[func](location, ...uniform.value);
+          } else {
+            // @ts-ignore
+            this.gl[func](location, uniform.value);
+          }
+        } else {
+          throw new Error(`GLSL uniform type ${uniform.type} not supported!`)
+        }
+      }
+    }
+  }
+
+  private getGlUniformParamNames(uniformName: string, uniform: ShaderUniform) {
+    const isVectorUniform = uniform.type.endsWith("v");
+
+    if (!isVectorUniform) {
+      return [uniformName];
+    }
+
+    if (typeof uniform.value !== "object") {
+      throw new Error(`Expected array uniform value: ${uniform}`)
+    }
+
+    const indexedNames = [];
+    for (let i = 0; i < uniform.value.length; i++) {
+      indexedNames.push(`${uniformName}[${i}]`);
+    }
+    return indexedNames;
   }
 
 }
