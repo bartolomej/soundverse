@@ -1,3 +1,9 @@
+// core shaders
+// @ts-ignore
+import fragment from "./shaders/curl.glsl";
+// @ts-ignore
+import vertex from "./shaders/vertex.glsl";
+
 type CoreFragmentShaderProps = {
   nLights?: number; // max number of lights
 }
@@ -5,6 +11,7 @@ type CoreFragmentShaderProps = {
 export const createFragmentShader = ({
   nLights = 1
 }: CoreFragmentShaderProps) => {
+  nLights = 1; // TODO use only a single light for now
   // language=GLSL
   return `
 #version 300 es

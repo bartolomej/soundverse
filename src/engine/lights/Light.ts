@@ -1,11 +1,10 @@
-import {vec3} from "gl-matrix";
 
 export class Light {
 
-  public ambientColor: vec3;
-  public diffuseColor: vec3;
-  public specularColor: vec3;
-  public attenuatuion: vec3;
+  public ambientColor: number[];
+  public diffuseColor: number[];
+  public specularColor: number[];
+  public attenuatuion: number[];
   public shininess: number;
 
   constructor() {

@@ -8,9 +8,6 @@ export class BufferView {
     byteLength: number;
     byteStride: number;
 
-    // TODO: Can we get rid of this, since it's only used in WebGLRenderer?
-    target: number;
-
     constructor(options: Partial<BufferView>) {
         this.buffer = options.buffer || null;
         this.byteOffset = options.byteOffset || 0;

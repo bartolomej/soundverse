@@ -1,16 +1,18 @@
 type WebGLAttributes = Record<string, number>;
 type WebGLUniforms = Record<string, WebGLUniformLocation>;
 
-export type WebGLProgramBundle = {
+type WebGLBuiltProgram = {
   program: WebGLProgram,
   attributes: WebGLAttributes,
   uniforms: WebGLUniforms
 }
-
 type WebGlProgramSource = {
   vertex: string,
   fragment: string,
 }
+
+type WebGlSourcePrograms = Record<string, WebGlProgramSource>;
+export type WebGLBuiltPrograms = Record<string, WebGLBuiltProgram>;
 
 type WebGLTextureOptions = {
   target?: number,
@@ -27,14 +29,14 @@ type WebGLTextureOptions = {
   mip?: number,
   width?: number,
   height?: number,
-  data?: ArrayBufferView
+  data?: TexImageSource
 }
 
 type WebGLBufferOptions = {
   target?: number,
   hint?: number,
   buffer?: WebGLBuffer,
-  data?: DataView
+  data?: number
 }
 
 type WebGlSamplerOptions = {
@@ -47,6 +49,14 @@ type WebGlSamplerOptions = {
 
 export class WebGL {
 
+  static buildPrograms(gl: WebGL2RenderingContext, shaders: WebGlSourcePrograms) {
+    const programs: WebGLBuiltPrograms = {};
+    for (const name in shaders) {
+      programs[name] = WebGL.buildProgram(gl, shaders[name]);
+    }
+    return programs;
+  }
+
   static buildProgram(gl: WebGL2RenderingContext, program: WebGlProgramSource) {
     try {
       return WebGL.createProgram(gl, [
@@ -58,7 +68,7 @@ export class WebGL {
     }
   }
 
-  static createProgram(gl: WebGL2RenderingContext, shaders: WebGLShader[]): WebGLProgramBundle {
+  static createProgram(gl: WebGL2RenderingContext, shaders: WebGLShader[]): WebGLBuiltProgram {
     const program = gl.createProgram();
     for (const shader of shaders) {
       gl.attachShader(program, shader);

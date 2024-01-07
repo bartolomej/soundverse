@@ -1,7 +1,7 @@
 import { TextureSampler } from '../textures/TextureSampler';
 import {Texture, TextureOptions} from '../textures/Texture';
 import {Material, MaterialOptions} from '../materials/Material';
-import {isPrimitiveAttributeName, Primitive, PrimitiveOptions} from '../core/Primitive';
+import {Primitive, PrimitiveOptions} from '../core/Primitive';
 import {Mesh, MeshOptions} from '../core/Mesh';
 import { PerspectiveCamera } from '../cameras/PerspectiveCamera';
 import { OrthographicCamera } from '../cameras/OrthographicCamera';
@@ -227,17 +227,9 @@ export class GLTFLoader {
 
         let options: MeshOptions = { primitives: [] };
         for (const primitiveSpec of gltfSpec.primitives) {
-            let primitiveOptions: PrimitiveOptions = {
-                attributes: {
-                    NORMAL: null,
-                    TEXCOORD_0: null,
-                    POSITION: null,
-                }
-            };
+            let primitiveOptions: PrimitiveOptions = {};
+            primitiveOptions.attributes = {};
             for (const name in primitiveSpec.attributes) {
-                if (!isPrimitiveAttributeName(name)) {
-                    throw new Error(`Unsupported primitive attribute: ${name}`)
-                }
                 primitiveOptions.attributes[name] = await this.loadAccessor(primitiveSpec.attributes[name]);
             }
             if (primitiveSpec.indices !== undefined) {

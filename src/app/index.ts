@@ -5,7 +5,7 @@ import { GUI } from 'dat.gui';
 // shaders
 // @ts-ignore
 import fragment from "./shaders/curl.glsl";
-import { WebGLRenderer } from "../engine/renderers/webgl/WebGLRenderer";
+import { WebGLRenderer } from "../engine/renderers/WebGLRenderer";
 import { Scene } from "../engine/Scene";
 import { Object3D } from "../engine/core/Object3D";
 import { GLTFLoader } from "../engine/loaders/GLTFLoader";
@@ -36,14 +36,8 @@ class App extends Application {
     this.shaderMaterial = new ShaderMaterial({
       fragmentShader: fragment,
       uniforms: {
-        time: {
-          type: "1f",
-          value: 0,
-        },
-        frequencies: {
-          type: "1fv",
-          value: new Array(this.fftSize).fill(0)
-        }
+        time: 0,
+        frequencies: new Array(this.fftSize).fill(0)
       }
     });
     this.walls = this.scene.findNodes("Wall.*");
