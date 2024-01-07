@@ -1,44 +1,42 @@
 import { Object3D } from './core/Object3D.js';
 
+type TraverseCb = (node: Object3D) => void;
 export type SceneOptions = Partial<Scene>;
-
-type TraversalOptions = {
-    onEnter?: (object: Object3D) => void;
-    onLeave?: (object: Object3D) => void;
-}
 
 export class Scene {
     nodes: Object3D[];
 
     constructor(options?: SceneOptions) {
-        this.nodes = options?.nodes ?? [];
+        this.nodes = options.nodes ?? [];
     }
 
     addNode(node: Object3D) {
         this.nodes.push(node);
     }
 
-    traverse(options: TraversalOptions) {
+    traverse(before?: TraverseCb, after?: TraverseCb) {
         for (const node of this.nodes) {
-            this.traverseNode(node, options);
+            this.traverseNode(node, before, after);
         }
     }
 
-    traverseNode(object: Object3D, options: TraversalOptions) {
-        options?.onEnter?.(object);
-        for (const child of object.children) {
-            this.traverseNode(child, options);
+    traverseNode(node: Object3D, before?: TraverseCb, after?: TraverseCb) {
+        if (before) {
+            before(node);
         }
-        options?.onLeave?.(object)
+        for (const child of node.children) {
+            this.traverseNode(child, before, after);
+        }
+        if (after) {
+            after(node);
+        }
     }
 
     getTotalLights() {
         let totalLights = 0;
-        this.traverse({
-            onEnter: (object) => {
-                if (object.light) {
-                    totalLights++
-                }
+        this.traverse((node) => {
+            if (node.light) {
+                totalLights++
             }
         });
         return totalLights;
@@ -46,11 +44,9 @@ export class Scene {
 
     getNodesWithProperty(property: string) {
         const nodes: Object3D[] = [];
-        this.traverse({
-            onEnter: (node) => {
-                if (node.hasOwnProperty(property)) {
-                    nodes.push(node);
-                }
+        this.traverse((node) => {
+            if (node.hasOwnProperty(property)) {
+                nodes.push(node);
             }
         });
         return nodes;
@@ -66,11 +62,9 @@ export class Scene {
 
     findNodes(regex: string) {
         const nodes: Object3D[] = [];
-        this.traverse({
-            onEnter: (object) => {
-                if (new RegExp(regex).test(object.name)) {
-                    nodes.push(object);
-                }
+        this.traverse((node) => {
+            if (new RegExp(regex).test(node.name)) {
+                nodes.push(node);
             }
         });
         return nodes;
