@@ -12,7 +12,8 @@ import { GLTFLoader } from "../engine/loaders/GLTFLoader";
 import FirstPersonControls from "../engine/controls/FirstPersonControls";
 import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
 import ShaderMaterial from "../engine/materials/ShaderMaterial";
-import { Light } from "../engine/lights/Light";
+import PositionalAudio from "../engine/audio/PositionalAudio";
+import {AudioListener} from "../engine/audio/AudioListener";
 
 class App extends Application {
 
@@ -22,21 +23,15 @@ class App extends Application {
   private loader: GLTFLoader;
   private controls: FirstPersonControls;
   private shaderMaterial: ShaderMaterial;
+  private walls: Object3D[];
+  private speaker: PositionalAudio;
   private fftSize: number = 32;
 
   async start() {
     this.loader = new GLTFLoader();
-    await this.loader.load('./models/test.gltf');
+    await this.loader.load('./models/gallery/gallery.gltf');
 
-    this.scene = await this.loader.loadScene(this.loader.defaultScene);
-
-    this.scene.nodes = this.scene.nodes.filter(node => !node.name.includes("Light"));
-
-    this.scene.addNode(new Object3D({
-      light: new Light({
-        attenuatuion: [1,0,0.01],
-      })
-    }));
+    this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
 
     this.shaderMaterial = new ShaderMaterial({
       fragmentShader: fragment,
@@ -51,28 +46,38 @@ class App extends Application {
         }
       }
     });
-    this.scene.findNodes(".*").forEach(wall => {
-      wall.mesh?.setMaterial(this.shaderMaterial);
+    this.walls = this.scene.findNodes("Wall.*");
+    this.walls.forEach(wall => {
+      wall.mesh.setMaterial(this.shaderMaterial);
     })
 
     this.camera = new Object3D({
       translation: [0,2,0],
-      camera: new PerspectiveCamera({
-        fov: 2
-      })
+      camera: new PerspectiveCamera()
     })
     this.controls = new FirstPersonControls(this.camera);
+
+    const light = this.scene.findNode("Light")
+
+    const listener = new AudioListener();
+    this.camera.addChild(listener);
+
+    this.speaker = new PositionalAudio(listener);
+    light.addChild(this.speaker);
+    this.speaker.setAudioUrl("https://cdns-preview-c.dzcdn.net/stream/c-cbde039fecdf23eaaf7c61db12a93f44-3.mp3");
+    this.speaker.play();
+
+    this.scene = await this.loader.loadScene(this.loader.defaultScene);
 
     this.renderer = new WebGLRenderer(this.gl, {clearColor: [1,1,1,1]});
     this.renderer.prepareScene(this.scene);
     this.resize();
-
-    console.log(this.scene)
   }
 
   update (dt: number, t: number) {
     this.controls?.update(dt);
     this.shaderMaterial?.setUniform("time", t);
+    this.speaker?.update();
   }
 
   render() {
