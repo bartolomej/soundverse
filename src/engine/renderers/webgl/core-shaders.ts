@@ -1,10 +1,12 @@
 type CoreFragmentShaderProps = {
-  nLights?: number; // max number of lights
+  nLights: number; // max number of lights
 }
 
 export const createFragmentShader = ({
-  nLights = 1
+  nLights
 }: CoreFragmentShaderProps) => {
+  // GLSL array size must be greater than 0
+  nLights = Math.max(nLights, 1);
   // language=GLSL
   return `
 #version 300 es
