@@ -219,7 +219,7 @@ export class WebGLRenderer {
     // rebuild programs if complete scene info is known on startup
     this.preparePrograms({
       // TODO: I think our shaders break for >1 lights
-      nLights: Math.min(scene.getTotalLights(), 1)
+      nLights: scene.getTotalLights()
     })
     for (const node of scene.nodes) {
       this.prepare3dObject(node);
@@ -241,20 +241,20 @@ export class WebGLRenderer {
 
     let lightCount = 0;
 
-    scene.traverse(
-      node => {
+    scene.traverse({
+      onEnter: object => {
         matrixStack.push(mat4.clone(matrix));
-        mat4.mul(matrix, matrix, node.matrix);
-        if (node.light instanceof Light) {
-          this.renderLight(node, lightCount)
+        mat4.mul(matrix, matrix, object.matrix);
+        if (object.light instanceof Light) {
+          this.renderLight(object, lightCount)
           lightCount++;
         }
-        this.renderObject3D(node, matrix, projection)
+        this.renderObject3D(object, matrix, projection)
       },
-      node => {
+      onLeave: () => {
         matrix = matrixStack.pop();
       }
-    );
+    });
   }
 
   renderLight(object: Object3D, lightIndex: number) {
