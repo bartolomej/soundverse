@@ -1,21 +1,10 @@
 import {mat4} from "gl-matrix"
 
-import {Camera, CameraOptions} from './Camera';
-
-export type PerspectiveCameraOptions = CameraOptions & {
-    aspect?: number;
-    fov?: number;
-    near?: number;
-    far?: number;
-}
+import { Camera } from './Camera.js';
 
 export class PerspectiveCamera extends Camera {
-    aspect: number;
-    fov: number;
-    near: number;
-    far: number;
 
-    constructor(options: PerspectiveCameraOptions = {}) {
+    constructor(options = {}) {
         super(options);
 
         this.aspect = options.aspect || 1.5;

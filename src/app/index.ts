@@ -7,24 +7,27 @@ import { GUI } from 'dat.gui';
 import fragment from "./shaders/curl.glsl";
 import { WebGLRenderer } from "../engine/renderers/WebGLRenderer";
 import { Scene } from "../engine/Scene";
-import { Object3D } from "../engine/core/Object3D";
+import { Node } from "../engine/Node";
 import { GLTFLoader } from "../engine/loaders/GLTFLoader";
 import FirstPersonControls from "../engine/controls/FirstPersonControls";
 import { PerspectiveCamera } from "../engine/cameras/PerspectiveCamera";
 import ShaderMaterial from "../engine/materials/ShaderMaterial";
-import PositionalAudio from "../engine/audio/PositionalAudio";
-import {AudioListener} from "../engine/audio/AudioListener";
+import Speaker from "./sound/Speaker";
+import DeezerGateway, { ArtistId } from "./sound/DeezerGateway";
+import AudioProcessor from "./sound/Processor";
 
 class App extends Application {
 
   private renderer: WebGLRenderer;
   private scene: Scene;
-  public camera: Object3D;
+  public camera: Node;
+  public lights: Node[];
   private loader: GLTFLoader;
   private controls: FirstPersonControls;
   private shaderMaterial: ShaderMaterial;
-  private walls: Object3D[];
-  private speaker: PositionalAudio;
+  private walls: Node[];
+  private speaker: Speaker;
+  private deezer: DeezerGateway;
   private fftSize: number = 32;
 
   async start() {
@@ -45,23 +48,22 @@ class App extends Application {
       wall.mesh.setMaterial(this.shaderMaterial);
     })
 
-    this.camera = new Object3D({
+    this.camera = new Node({
       translation: [0,2,0],
       camera: new PerspectiveCamera()
     })
     this.controls = new FirstPersonControls(this.camera);
 
     const light = this.scene.findNode("Light")
+    this.deezer = new DeezerGateway();
+    await this.deezer.prefetch(); // download songs
+    const artist = this.deezer.getArtist(ArtistId.BICEP);
 
-    const listener = new AudioListener();
-    this.camera.addChild(listener);
-
-    this.speaker = new PositionalAudio(listener);
-    light.addChild(this.speaker);
-    this.speaker.setAudioUrl("https://cdns-preview-c.dzcdn.net/stream/c-cbde039fecdf23eaaf7c61db12a93f44-3.mp3");
+    this.speaker = new Speaker(light.translation);
+    this.speaker.setPlaylist(artist.trackList);
     this.speaker.play();
 
-    this.scene = await this.loader.loadScene(this.loader.defaultScene);
+    this.scene = await this.loader.loadScene(this.loader.defaultScene) as Scene;
 
     this.renderer = new WebGLRenderer(this.gl, {clearColor: [1,1,1,1]});
     this.renderer.prepareScene(this.scene);
@@ -71,7 +73,11 @@ class App extends Application {
   update (dt: number, t: number) {
     this.controls?.update(dt);
     this.shaderMaterial?.setUniform("time", t);
-    this.speaker?.update();
+    const fft = this.speaker?.getFrequencyData(this.fftSize);
+    if (fft) {
+      this.shaderMaterial?.setUniform("frequencies", AudioProcessor.normalize(fft, 255));
+    }
+    this.speaker?.setPlayerPosition(this.camera.translation);
   }
 
   render() {
@@ -86,9 +92,7 @@ class App extends Application {
     const aspectRatio = w / h;
 
     if (this.camera) {
-      if (this.camera.camera instanceof PerspectiveCamera) {
-        this.camera.camera.aspect = aspectRatio;
-      }
+      this.camera.camera.aspect = aspectRatio;
       this.camera.camera.updateMatrix();
     }
   }

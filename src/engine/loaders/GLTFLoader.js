@@ -1,45 +1,40 @@
-import { TextureSampler } from '../textures/TextureSampler';
-import {Texture, TextureOptions} from '../textures/Texture';
-import {Material, MaterialOptions} from '../materials/Material';
-import {Primitive, PrimitiveOptions} from '../core/Primitive';
-import {Mesh, MeshOptions} from '../core/Mesh';
-import { PerspectiveCamera } from '../cameras/PerspectiveCamera';
-import { OrthographicCamera } from '../cameras/OrthographicCamera';
-import { Object3D } from '../core/Object3D';
-import {Scene, SceneOptions} from '../Scene';
+import { BufferView } from '../BufferView.js';
+import { Accessor } from '../Accessor.js';
+import { Sampler } from '../Sampler.js';
+import { Texture } from '../textures/Texture.js';
+import { Material } from '../materials/Material.js';
+import { Primitive } from '../Primitive.js';
+import { Mesh } from '../Mesh.ts';
+import { PerspectiveCamera } from '../cameras/PerspectiveCamera.js';
+import { OrthographicCamera } from '../cameras/OrthographicCamera.js';
+import { Node } from '../Node.js';
+import { Scene } from '../Scene.ts';
 import { deep } from "../Utils";
 import { Light } from "../lights/Light";
-import {BufferView} from "../core/BufferView";
-import {Accessor} from "../core/Accessor";
-import {Camera} from "../cameras/Camera";
 
 // This class loads all GLTF resources and instantiates
 // the corresponding classes. Keep in mind that it loads
 // the resources in series (care to optimize?).
 
 export class GLTFLoader {
-    cache: any;
-    private gltfUrl: URL
-    private gltf: any;
-    defaultScene: number;
 
     constructor() {
         this.gltf = null;
         this.gltfUrl = null;
+        this.dirname = null;
+
         this.cache = new Map();
     }
 
-    private async fetchJson(url: string): Promise<unknown> {
-        let response = await fetch(url);
-        return await response.json();
+    fetchJson(url) {
+        return fetch(url).then(response => response.json());
     }
 
-    private async fetchBuffer(url: string): Promise<ArrayBuffer> {
-        let response = await fetch(url);
-        return await response.arrayBuffer();
+    fetchBuffer(url) {
+        return fetch(url).then(response => response.arrayBuffer());
     }
 
-    private fetchImage(url: string): Promise<HTMLImageElement> {
+    fetchImage(url) {
         return new Promise((resolve, reject) => {
             let image = new Image();
             image.addEventListener('load', e => resolve(image));
@@ -48,21 +43,21 @@ export class GLTFLoader {
         });
     }
 
-    findByNameOrIndex(mapping: any, nameOrIndex: string | number) {
+    findByNameOrIndex(set, nameOrIndex) {
         if (typeof nameOrIndex === 'number') {
-            return mapping[nameOrIndex];
+            return set[nameOrIndex];
         } else {
-            return mapping.find((element: any) => element.name === nameOrIndex);
+            return set.find(element => element.name === nameOrIndex);
         }
     }
 
-    async load(url: string) {
-        this.gltfUrl = new URL(url, window.location.origin);
+    async load(url) {
+        this.gltfUrl = new URL(url, window.location);
         this.gltf = await this.fetchJson(url);
         this.defaultScene = this.gltf.scene || 0;
     }
 
-    async loadImage(nameOrIndex: string | number): Promise<HTMLImageElement> {
+    async loadImage(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.images, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
@@ -70,7 +65,7 @@ export class GLTFLoader {
 
         if (gltfSpec.uri) {
             const url = new URL(gltfSpec.uri, this.gltfUrl);
-            const image = await this.fetchImage(url.toString());
+            const image = await this.fetchImage(url);
             this.cache.set(gltfSpec, image);
             return image;
         } else {
@@ -84,19 +79,19 @@ export class GLTFLoader {
         }
     }
 
-    async loadBuffer(nameOrIndex: string | number): Promise<ArrayBuffer> {
+    async loadBuffer(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.buffers, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
         const url = new URL(gltfSpec.uri, this.gltfUrl);
-        const buffer = await this.fetchBuffer(url.toString());
+        const buffer = await this.fetchBuffer(url);
         this.cache.set(gltfSpec, buffer);
         return buffer;
     }
 
-    async loadBufferView(nameOrIndex: string | number): Promise<BufferView> {
+    async loadBufferView(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.bufferViews, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
@@ -110,38 +105,38 @@ export class GLTFLoader {
         return bufferView;
     }
 
-    async loadAccessor(nameOrIndex: string | number): Promise<Accessor> {
+    async loadAccessor(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.accessors, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        const accessorTypeToNumComponentsLookup = new Map([
-            ["SCALAR", 1],
-            ["VEC2", 2],
-            ["VEC3", 3],
-            ["VEC4", 4],
-            ["MAT2", 4],
-            ["MAT3", 9],
-            ["MAT4", 16],
-        ])
+        const accessorTypeToNumComponentsMap = {
+            SCALAR : 1,
+            VEC2   : 2,
+            VEC3   : 3,
+            VEC4   : 4,
+            MAT2   : 4,
+            MAT3   : 9,
+            MAT4   : 16,
+        };
 
         const accessor = new Accessor({
             ...gltfSpec,
             bufferView    : await this.loadBufferView(gltfSpec.bufferView),
-            numComponents : accessorTypeToNumComponentsLookup.get(gltfSpec.type),
+            numComponents : accessorTypeToNumComponentsMap[gltfSpec.type],
         });
         this.cache.set(gltfSpec, accessor);
         return accessor;
     }
 
-    async loadSampler(nameOrIndex: string | number) {
+    async loadSampler(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.samplers, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        const sampler = new TextureSampler({
+        const sampler = new Sampler({
             min   : gltfSpec.minFilter,
             mag   : gltfSpec.magFilter,
             wrapS : gltfSpec.wrapS,
@@ -151,13 +146,13 @@ export class GLTFLoader {
         return sampler;
     }
 
-    async loadTexture(nameOrIndex: string | number): Promise<Texture> {
+    async loadTexture(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.textures, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        let options: TextureOptions = {};
+        let options = {};
         if (gltfSpec.source !== undefined) {
             options.image = await this.loadImage(gltfSpec.source);
         }
@@ -170,13 +165,13 @@ export class GLTFLoader {
         return texture;
     }
 
-    async loadMaterial(nameOrIndex: string | number): Promise<Material> {
+    async loadMaterial(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.materials, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        let options: MaterialOptions = {};
+        let options = {};
         const pbr = gltfSpec.pbrMetallicRoughness;
         if (pbr !== undefined) {
             if (pbr.baseColorTexture !== undefined) {
@@ -219,15 +214,15 @@ export class GLTFLoader {
         return material;
     }
 
-    async loadMesh(nameOrIndex: string | number): Promise<Mesh> {
+    async loadMesh(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.meshes, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        let options: MeshOptions = { primitives: [] };
+        let options = { primitives: [] };
         for (const primitiveSpec of gltfSpec.primitives) {
-            let primitiveOptions: PrimitiveOptions = {};
+            let primitiveOptions = {};
             primitiveOptions.attributes = {};
             for (const name in primitiveSpec.attributes) {
                 primitiveOptions.attributes[name] = await this.loadAccessor(primitiveSpec.attributes[name]);
@@ -248,7 +243,7 @@ export class GLTFLoader {
         return mesh;
     }
 
-    async loadLight(nameOrIndex: string | number) {
+    async loadLight(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(deep(this.gltf, 'extensions.KHR_lights_punctual.lights'), nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
@@ -259,7 +254,7 @@ export class GLTFLoader {
         return light;
     }
 
-    async loadCamera(nameOrIndex: string | number): Promise<Camera> {
+    async loadCamera(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.cameras, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
@@ -290,7 +285,7 @@ export class GLTFLoader {
         }
     }
 
-    async loadNode(nameOrIndex: string | number) {
+    async loadNode(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.nodes, nameOrIndex);
         if (!gltfSpec) {
             throw new Error(`Cant find node with index ${nameOrIndex}`)
@@ -318,18 +313,18 @@ export class GLTFLoader {
             options.light = await this.loadLight(light)
         }
 
-        const node = new Object3D(options);
+        const node = new Node(options);
         this.cache.set(gltfSpec, node);
         return node;
     }
 
-    async loadScene(nameOrIndex: string | number) {
+    async loadScene(nameOrIndex) {
         const gltfSpec = this.findByNameOrIndex(this.gltf.scenes, nameOrIndex);
         if (this.cache.has(gltfSpec)) {
             return this.cache.get(gltfSpec);
         }
 
-        let options: SceneOptions = { nodes: [] };
+        let options = { nodes: [] };
         if (gltfSpec.nodes) {
             for (const nodeIndex of gltfSpec.nodes) {
                 const node = await this.loadNode(nodeIndex);

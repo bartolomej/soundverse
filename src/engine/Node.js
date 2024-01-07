@@ -1,23 +1,9 @@
 import { vec3, mat4, quat } from 'gl-matrix';
-import {Camera} from "../cameras/Camera";
-import {Light} from "../lights/Light";
-import {Mesh} from "./Mesh";
 
-export type Object3DOptions = Partial<Omit<Object3D, "parent">>
-export class Object3D {
-    translation: vec3;
-    rotation: quat;
-    scale: vec3;
-    matrix: mat4;
-    children: Object3D[];
-    name: string;
-    parent: Object3D | null;
-    camera: Camera;
-    light: Light;
-    mesh: Mesh;
+export class Node {
 
-    constructor(options: Object3DOptions = {}) {
-        this.name = options.name ?? "Object3D";
+    constructor(options = {}) {
+        this.name = options.name;
 
         this.translation = options.translation
             ? vec3.clone(options.translation)
@@ -42,7 +28,7 @@ export class Object3D {
         this.light = options.light || null;
         this.mesh = options.mesh || null;
 
-        this.children = options.children ?? [];
+        this.children = [...(options.children || [])];
         for (const child of this.children) {
             child.parent = this;
         }
@@ -64,7 +50,7 @@ export class Object3D {
     }
 
 
-    getGlobalTransform(): mat4 {
+    getGlobalTransform() {
         if (!this.parent) {
             return mat4.clone(this.matrix);
         } else {
@@ -73,12 +59,12 @@ export class Object3D {
         }
     }
 
-    addChild(node: Object3D) {
+    addChild(node) {
         this.children.push(node);
         node.parent = this;
     }
 
-    removeChild(node: Object3D) {
+    removeChild(node) {
         const index = this.children.indexOf(node);
         if (index >= 0) {
             this.children.splice(index, 1);
@@ -86,8 +72,8 @@ export class Object3D {
         }
     }
 
-    clone(): Object3D {
-        return new Object3D({
+    clone() {
+        return new Node({
             ...this,
             children: this.children.map(child => child.clone()),
         });

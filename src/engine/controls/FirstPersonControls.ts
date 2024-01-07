@@ -1,6 +1,5 @@
 import { mat4, quat, vec3 } from "gl-matrix";
-import { Object3D } from "../core/Object3D";
-import {Camera} from "../cameras/Camera";
+import { Node } from "../Node";
 
 type FirstPersonControlsOptions = {
   velocity?: vec3,
@@ -11,6 +10,7 @@ type FirstPersonControlsOptions = {
 }
 
 export default class FirstPersonControls {
+  private node: Node;
   private readonly keys: { [key: string]: boolean };
   private velocity: vec3;
   private friction: number;
@@ -19,7 +19,9 @@ export default class FirstPersonControls {
   private mouseSensitivity: number;
   private rotation: vec3 = [0,0,0]; // euler rotation vector with angles x,y,z
 
-  constructor (private readonly camera: Object3D, options: FirstPersonControlsOptions = {}) {
+  constructor (node: Node, options: FirstPersonControlsOptions = {}) {
+    this.node = node;
+
     this.velocity = options.velocity || vec3.create();
     this.friction = options.friction || 0.2;
     this.acceleration = options.acceleration || 20;
@@ -33,7 +35,7 @@ export default class FirstPersonControls {
   }
 
   update (dt: number) {
-    const { camera, velocity, acceleration, friction, maxSpeed, rotation } = this;
+    const { node, velocity, acceleration, friction, maxSpeed, rotation } = this;
 
     const forward = vec3.set(vec3.create(),
       -Math.sin(rotation[1]), 0, -Math.cos(rotation[1]));
@@ -73,15 +75,15 @@ export default class FirstPersonControls {
     }
 
     // 5: update translation
-    vec3.scaleAndAdd(camera.translation, camera.translation, velocity, dt);
+    vec3.scaleAndAdd(node.translation, node.translation, velocity, dt);
 
     // 6: update the final transform
-    const t = camera.matrix;
+    const t = node.matrix;
     mat4.identity(t);
-    mat4.translate(t, t, camera.translation);
-    mat4.rotateY(t, t, camera.rotation[1]);
-    mat4.rotateX(t, t, camera.rotation[0]);
-    camera.updateMatrix();
+    mat4.translate(t, t, node.translation);
+    mat4.rotateY(t, t, node.rotation[1]);
+    mat4.rotateX(t, t, node.rotation[0]);
+    node.updateMatrix();
   }
 
   enable () {
@@ -103,7 +105,7 @@ export default class FirstPersonControls {
   private mousemoveHandler (e: MouseEvent) {
     const dx = e.movementX;
     const dy = e.movementY;
-    const { camera, rotation, mouseSensitivity } = this;
+    const { node, rotation, mouseSensitivity } = this;
 
     rotation[0] -= dy * mouseSensitivity;
     rotation[1] -= dx * mouseSensitivity;
@@ -123,11 +125,11 @@ export default class FirstPersonControls {
 
     const [x,y,z] = rotation.map((x: number) => x * 180 / Math.PI);
     const q = quat.fromEuler(quat.create(), x, y, z);
-    const v = vec3.clone(camera.translation);
-    const s = vec3.clone(camera.scale);
-    mat4.fromRotationTranslationScale(camera.matrix, q, v, s);
+    const v = vec3.clone(node.translation);
+    const s = vec3.clone(node.scale);
+    mat4.fromRotationTranslationScale(node.matrix, q, v, s);
 
-    camera.updateTransform();
+    node.updateTransform();
   }
 
   private keydownHandler (e: KeyboardEvent) {
